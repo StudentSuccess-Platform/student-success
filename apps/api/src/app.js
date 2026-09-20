@@ -1,0 +1,70 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+
+const app = express();
+
+// Security middleware
+app.use(helmet());
+
+// Cross-origin requests
+app.use(cors());
+
+// Request parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Development request logging
+app.use(morgan("dev"));
+
+// API root
+app.get("/api/v1", (req, res) => {
+  res.status(200).json({
+    message: "StudentSuccess API",
+    status: "running"
+  });
+});
+
+// Health check
+app.get("/api/v1/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    service: "student-success-api",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Sanity check
+app.get("/", (req, res) => {
+  res.status(200).send(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>StudentSuccess API</title>
+      </head>
+      <body>
+        <h1>StudentSuccess</h1>
+        <p>Backend API is running successfully.</p>
+      </body>
+    </html>
+  `);
+});
+
+// Route not found
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Route not found"
+  });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  res.status(err.status || 500).json({
+    error: err.message || "Internal server error"
+  });
+});
+
+export default app;
