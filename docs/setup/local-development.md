@@ -26,9 +26,9 @@ No production service is needed for any step below.
    - Verify: `curl localhost:11434/api/tags`, and `docker compose exec ollama ollama ps` (PROCESSOR shows GPU/CPU split). Inside compose the API reaches it at `http://ollama:11434`.
    - Tuning (env, optional): `OLLAMA_KEEP_ALIVE`, `OLLAMA_NUM_PARALLEL`, `OLLAMA_MAX_LOADED_MODELS`.
    - Status: NVIDIA and CPU verified. AMD ROCm config validates but is untested.
-10. Seed data: **pending SCRUM-11**. No seed command exists yet.
+10. Seed synthetic data (MongoDB must be running: `docker compose up -d mongo`): `cd apps/api && npm run db:reset`. Set `MONGODB_URI` in `apps/api/.env` first (see `.env.example`). Full lifecycle, modules and reset workflow: [docs/database/local-database.md](../database/local-database.md). Data model: [docs/database/data-model.md](../database/data-model.md).
 
 ## Notes
-- The API does not connect to MongoDB yet (SCRUM-11); the container is provisioned for it.
+- The API connects to MongoDB using `MONGODB_URI`. It still starts (and `/api/v1/health` works) if the database is down; health then reports `database: disconnected`.
 - The web app (`apps/web`) is not scaffolded yet, so compose has no `web` service.
 - Ports: API 3000, Web 5173, MongoDB 27017, Ollama 11434.

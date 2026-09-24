@@ -19,6 +19,16 @@ jobs:
     name: API CI
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,18 +66,30 @@ jobs:
       - name: Test
         if: steps.changes.outputs.relevant == 'true'
         working-directory: apps/api
+        env:
+          MONGODB_URI: mongodb://localhost:27017/studentsuccess
         run: npm test
+
+      - name: Seed database and verify consistency
+        if: steps.changes.outputs.relevant == 'true'
+        working-directory: apps/api
+        env:
+          MONGODB_URI: mongodb://localhost:27017/studentsuccess_seed
+        run: npm run db:reset
 
       - name: Smoke test (start server and probe health)
         if: steps.changes.outputs.relevant == 'true'
         working-directory: apps/api
         env:
           PORT: 3000
+          MONGODB_URI: mongodb://localhost:27017/studentsuccess_seed
         run: |
           node src/server.js &
           pid=$!
           for _ in $(seq 1 20); do
-            if curl -fsS http://localhost:3000/api/v1/health; then
+            if curl -fsS http://localhost:3000/api/v1/health | grep -q '"database":"connected"'; then
+              echo "API healthy and connected to MongoDB"
+
               kill $pid
               exit 0
             fi
