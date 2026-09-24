@@ -4,6 +4,9 @@
 Jira story -> branch `SCRUM-<n>-title` -> commits `SCRUM-<n> Short title` -> push -> PR to `main` -> CI -> review -> merge.
 
 ## Workflows
+GitHub calls a pipeline a *workflow*, defined in `.github/workflows/`. Mapping from GitLab: `.gitlab-ci.yml` -> workflow files,
+pipeline -> workflow run, merge request -> pull request, CI/CD variables -> Secrets and Variables, runners -> runners.
+
 | Workflow | File | Trigger | Runs |
 |---|---|---|---|
 | API CI (check name `API CI`) | `.github/workflows/api-ci.yml` | every PR to `main` | install, lint, test, server smoke test |
@@ -26,9 +29,12 @@ Use it to verify workflow edits and to debug a failing or misbehaving workflow b
 the jobs; a real run on a PR is still the final proof.
 
 ## Required checks before merge
-Configure in GitHub: Settings -> Branches -> protect `main` -> require status checks
-`API CI` and `Web CI`, and require PRs. (Repository setting; cannot be set from code.)
+Configured in GitHub as the ruleset "Pre merge verification" (Settings -> Rules): require a PR and require the
+status checks `API CI` and `Web CI` on `main`. This is a repository setting and cannot be set from code.
 Failures show on the PR checks tab.
+
+**Enforcement caveat:** GitHub does not enforce rulesets on private repositories without a paid plan (Team/Pro).
+Until then the rule is followed by convention: merge only when both checks are green.
 
 ## Secrets
 Never committed. `.env` files are gitignored; only `.env.example` is tracked.
@@ -41,5 +47,5 @@ Deployment secrets live in GitHub Environments and are referenced only as `secre
 | CI for Web | Dormant, pending frontend scaffold |
 | Deploy workflow | Skeleton only |
 | Hosting target for test/demo/production | Undecided (team decision) |
-| Branch protection / required checks | Manual GitHub setting, to do |
-| Test PR demonstrating CI | Pending |
+| Branch protection / required checks | Ruleset configured; enforcement pending a GitHub plan that supports private repos |
+| Test PR demonstrating CI | Done: passed (`fb35f07`), failed on an intentional failing test (`4da3215`), passed after revert (`11d4087`) |
