@@ -1,0 +1,24 @@
+name: Deploy
+
+# Skeleton only. Hosting target is not decided yet, so this is a manual no-op.
+# When decided: add a GitHub Environment (test/demo, production) holding its
+# secrets and reference them only via `secrets.*`.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [test, production]
+        default: test
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Deployment not configured yet (see docs/sdlc/ci-cd.md)."

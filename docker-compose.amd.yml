@@ -1,0 +1,8 @@
+# Optional AMD GPU (ROCm) support for Ollama on Linux hosts. Untested on this project's dev machine.
+#   docker compose -f docker-compose.yml -f docker-compose.amd.yml --profile ai up -d
+services:
+  ollama:
+    image: ollama/ollama:0.5.12-rocm
+    devices:
+      - /dev/kfd
+      - /dev/dri

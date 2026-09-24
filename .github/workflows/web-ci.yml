@@ -1,0 +1,67 @@
+name: Web CI
+
+# Dormant until the frontend scaffold exists: every step is gated on
+# apps/web/package-lock.json. Runs on every PR so the check always reports.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-ci:
+    name: Web CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect scaffold and relevant changes
+        id: changes
+        run: |
+          if [ ! -f apps/web/package-lock.json ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Web app not scaffolded yet; skipping."
+            exit 0
+          fi
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          if git diff --name-only "$base" "$head" | grep -qE '^(apps/web/|packages/shared/|package(-lock)?\.json$|\.github/workflows/web-ci\.yml$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.run == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install
+        if: steps.changes.outputs.run == 'true'
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Lint
+        if: steps.changes.outputs.run == 'true'
+        working-directory: apps/web
+        run: npm run lint --if-present
+
+      - name: Test
+        if: steps.changes.outputs.run == 'true'
+        working-directory: apps/web
+        run: npm test --if-present
+
+      - name: Build
+        if: steps.changes.outputs.run == 'true'
+        working-directory: apps/web
+        run: npm run build
