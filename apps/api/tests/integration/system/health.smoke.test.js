@@ -15,6 +15,7 @@ describe("health endpoints", () => {
     const body = await res.json();
     assert.equal(body.status, "healthy");
     assert.equal(body.service, "student-success-api");
+    assert.ok(["connected", "disconnected", "connecting", "disconnecting"].includes(body.database));
     assert.ok(!Number.isNaN(Date.parse(body.timestamp)));
   });
 
