@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import { getDatabaseStatus } from "./config/database.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.get("/api/v1/health", (req, res) => {
   res.status(200).json({
     status: "healthy",
     service: "student-success-api",
+    database: getDatabaseStatus(),
     timestamp: new Date().toISOString()
   });
 });

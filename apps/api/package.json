@@ -14,7 +14,10 @@
     "test:integration": "node tests/run.js --type integration",
     "test:e2e": "node tests/run.js --type e2e",
     "test:smoke": "node tests/run.js --suite smoke",
-    "test:module": "node tests/run.js --module"
+    "test:module": "node tests/run.js --module",
+    "db:seed": "node seed/run.js",
+    "db:reset": "node seed/run.js --reset",
+    "db:check": "node seed/run.js --check"
   },
   "keywords": [],
   "author": "",
@@ -26,10 +29,12 @@
     "dotenv": "^18.0.1",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
+    "mongoose": "^9.10.2",
     "morgan": "^1.12.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@faker-js/faker": "^9.9.0",
     "eslint": "^9.39.5",
     "globals": "^17.12.0",
     "nodemon": "^3.1.14"

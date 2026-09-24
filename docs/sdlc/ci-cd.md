@@ -9,7 +9,7 @@ pipeline -> workflow run, merge request -> pull request, CI/CD variables -> Secr
 
 | Workflow | File | Trigger | Runs |
 |---|---|---|---|
-| API CI (check name `API CI`) | `.github/workflows/api-ci.yml` | every PR to `main` | install, lint, test, server smoke test |
+| API CI (check name `API CI`) | `.github/workflows/api-ci.yml` | every PR to `main` | install, lint, tests (with a MongoDB service), seed and consistency check, server smoke test that requires a database connection |
 | Web CI (check name `Web CI`) | `.github/workflows/web-ci.yml` | every PR to `main` | install, lint, test, build; dormant until `apps/web/package-lock.json` exists |
 | Deploy | `.github/workflows/deploy.yml` | manual (`workflow_dispatch`) | placeholder, no-op |
 
