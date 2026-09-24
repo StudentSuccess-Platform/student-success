@@ -6,9 +6,15 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node tests/run.js",
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "lint": "eslint .",
+    "test:unit": "node tests/run.js --type unit",
+    "test:integration": "node tests/run.js --type integration",
+    "test:e2e": "node tests/run.js --type e2e",
+    "test:smoke": "node tests/run.js --suite smoke",
+    "test:module": "node tests/run.js --module"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +29,12 @@
     "morgan": "^1.12.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.12.0",
     "nodemon": "^3.1.14"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

@@ -628,7 +628,7 @@ Primary activities include:
 
 # Local Development
 
-Detailed setup instructions will be added as the API, database, and frontend environments are configured.
+Local setup: see [docs/setup/local-development.md](docs/setup/local-development.md). CI/CD: [docs/sdlc/ci-cd.md](docs/sdlc/ci-cd.md). Environments: [docs/architecture/environments.md](docs/architecture/environments.md).
 
 The intended local architecture is:
 

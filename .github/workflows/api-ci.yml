@@ -1,0 +1,77 @@
+name: API CI
+
+# Runs on every PR to main so the "API CI" check always reports a status.
+# (A workflow skipped by `paths:` never reports, which would leave a required
+# check pending forever.) Relevance is detected inside the job instead.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-ci:
+    name: API CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect relevant changes
+        id: changes
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          if git diff --name-only "$base" "$head" | grep -qE '^(apps/api/|packages/shared/|infrastructure/|docker-compose\.yml$|package(-lock)?\.json$|\.github/workflows/api-ci\.yml$)'; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+            echo "No API-relevant changes; skipping validation."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.relevant == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/api/package-lock.json
+
+      - name: Install
+        if: steps.changes.outputs.relevant == 'true'
+        working-directory: apps/api
+        run: npm ci
+
+      - name: Lint
+        if: steps.changes.outputs.relevant == 'true'
+        working-directory: apps/api
+        run: npm run lint
+
+      - name: Test
+        if: steps.changes.outputs.relevant == 'true'
+        working-directory: apps/api
+        run: npm test
+
+      - name: Smoke test (start server and probe health)
+        if: steps.changes.outputs.relevant == 'true'
+        working-directory: apps/api
+        env:
+          PORT: 3000
+        run: |
+          node src/server.js &
+          pid=$!
+          for _ in $(seq 1 20); do
+            if curl -fsS http://localhost:3000/api/v1/health; then
+              kill $pid
+              exit 0
+            fi
+            sleep 1
+          done
+          kill $pid
+          exit 1
