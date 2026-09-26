@@ -56,10 +56,10 @@ jobs:
         working-directory: apps/web
         run: npm run lint --if-present
 
-      - name: Test
+      - name: Test with coverage
         if: steps.changes.outputs.run == 'true'
         working-directory: apps/web
-        run: npm test --if-present
+        run: npm run test:coverage
 
       - name: Build
         if: steps.changes.outputs.run == 'true'
