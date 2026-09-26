@@ -42,5 +42,16 @@ if (files.length === 0) {
   process.exit(0);
 }
 
-const r = spawnSync(process.execPath, ["--test", ...files], { stdio: "inherit" });
+const coverage = args.includes("--coverage");
+
+const nodeArgs = [
+  "--test",
+  ...(coverage ? ["--experimental-test-coverage"] : []),
+  ...files,
+];
+
+const r = spawnSync(process.execPath, nodeArgs, {
+  stdio: "inherit",
+});
+
 process.exit(r.status ?? 1);
