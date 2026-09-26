@@ -1,0 +1,11 @@
+{
+  "name": "student-success",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "docs/*",
+    "packages/*",
+    "infrastructure/*",
+    "scripts/*"
+  ]
+}
