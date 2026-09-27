@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-node@v4
         if: steps.changes.outputs.run == 'true'
         with:
-          node-version: 22
+          node-version: 22.x
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -52,7 +52,7 @@ jobs:
       - name: Test with coverage
         if: steps.changes.outputs.run == 'true'
         working-directory: apps/web
-        run: npm run test:coverage --workspace=apps/web
+        run: npm run test:coverage
 
       - name: Build
         if: steps.changes.outputs.run == 'true'
