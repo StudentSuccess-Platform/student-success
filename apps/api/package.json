@@ -15,6 +15,7 @@
     "test:e2e": "node tests/run.js --type e2e",
     "test:smoke": "node tests/run.js --suite smoke",
     "test:module": "node tests/run.js --module",
+    "test:coverage": "node tests/run.js --coverage",
     "db:seed": "node seed/run.js",
     "db:reset": "node seed/run.js --reset",
     "db:check": "node seed/run.js --check"
