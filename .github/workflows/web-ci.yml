@@ -47,14 +47,14 @@ jobs:
       - name: Lint
         if: steps.changes.outputs.run == 'true'
         working-directory: apps/web
-        run: npm run lint --if-present
+        run: npm run lint --workspace=apps/web --if-present
 
       - name: Test with coverage
         if: steps.changes.outputs.run == 'true'
         working-directory: apps/web
-        run: npm run test:coverage
+        run: npm run test:coverage --workspace=apps/web
 
       - name: Build
         if: steps.changes.outputs.run == 'true'
         working-directory: apps/web
-        run: npm run build
+        run: npm run build --workspace=apps/web
