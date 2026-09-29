@@ -451,6 +451,131 @@
   color: var(--auth-navy);
 }
 
+/* Forgot password */
+
+.auth-fp-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  text-align: center;
+}
+
+.auth-fp-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 100px;
+  background: var(--auth-orange-soft);
+}
+
+.auth-fp-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.auth-fp-header-text h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--auth-navy);
+}
+
+.auth-fp-header-text p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--auth-muted);
+}
+
+.auth-submit--accent {
+  background: var(--auth-orange);
+}
+
+.auth-submit--accent:hover {
+  background: #dd611b;
+}
+
+.auth-fp-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.auth-fp-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--auth-navy);
+  text-decoration: none;
+}
+
+.auth-fp-back:hover {
+  text-decoration: underline;
+}
+
+.auth-fp-status {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--auth-navy);
+}
+
+/* Check your email */
+
+.auth-ce-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-ce-resend-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.auth-ce-resend-group p {
+  margin: 0;
+  color: var(--auth-muted);
+}
+
+.auth-ce-resend-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--auth-orange);
+  cursor: pointer;
+}
+
+.auth-ce-resend-btn:hover {
+  text-decoration: underline;
+}
+
+.auth-ce-spacer {
+  height: 40px;
+  width: 100%;
+}
+
 /* Responsive */
 
 @media (max-width: 980px) {
