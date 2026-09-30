@@ -27,7 +27,7 @@ describe("docs/sdlc/jira-github-traceability.md", () => {
     assert.match(contents, /## Decision: naming-convention traceability/);
   });
 
-  test("documents the branch\/commit\/PR naming convention table", () => {
+  test("documents the branch/commit/PR naming convention table", () => {
     assert.match(contents, /## The convention/);
     assert.match(contents, /SCRUM-<n>-<kebab-title>/);
     assert.match(contents, /SCRUM-<n> Short title/);
