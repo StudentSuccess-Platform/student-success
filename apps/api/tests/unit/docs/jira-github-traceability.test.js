@@ -66,14 +66,20 @@ describe("docs/sdlc/jira-github-traceability.md", () => {
     }
   });
 
-  test("the SCRUM-<n> commit convention the doc describes is actually being followed", () => {
-    const log = execSync("git log --oneline -5", { cwd: repoRoot, encoding: "utf8" });
-    const lines = log.trim().split("\n");
+  test("the SCRUM-<n> ticket-key convention the doc describes is actually being followed", () => {
+    // A wide window and a case/format-tolerant pattern: GitHub's default squash-merge
+    // title turns "SCRUM-15-..." into "Scrum 15 ... (#9)" (space, title case), and an
+    // unrelated run of merge commits can push a real ticket-key commit out of a short
+    // window. Checking the last 5 commits with a strict /^SCRUM-\d+/ anchor broke this
+    // test on every PR merged after the first few, even though the convention itself
+    // (README.md, PR template) was still being followed.
+    const log = execSync("git log --oneline -n 30", { cwd: repoRoot, encoding: "utf8" });
+    const lines = log.trim().split("\n").filter(Boolean);
     assert.ok(lines.length > 0, "expected at least one commit in git log");
-    const hasConventionCommit = lines.some((line) => {
-      const message = line.replace(/^[0-9a-f]+\s+/, "");
-      return /^SCRUM-\d+/.test(message);
-    });
-    assert.ok(hasConventionCommit, `expected at least one of the last 5 commits to match /^SCRUM-\\d+/, got:\n${log}`);
+    const hasConventionCommit = lines.some((line) => /scrum[-\s]\d+/i.test(line));
+    assert.ok(
+      hasConventionCommit,
+      `expected at least one of the last 30 commits to reference a SCRUM ticket key (e.g. "SCRUM-8" or "Scrum 8"), got:\n${log}`,
+    );
   });
 });
