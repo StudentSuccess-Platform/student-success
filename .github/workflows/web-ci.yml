@@ -1,7 +1,5 @@
 name: Web CI
 
-# Dormant until the frontend scaffold exists: every step is gated on
-# apps/web/package-lock.json. Runs on every PR so the check always reports.
 on:
   pull_request:
     branches: [main]
@@ -26,11 +24,6 @@ jobs:
       - name: Detect scaffold and relevant changes
         id: changes
         run: |
-          if [ ! -f apps/web/package-lock.json ]; then
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Web app not scaffolded yet; skipping."
-            exit 0
-          fi
           base="${{ github.event.pull_request.base.sha }}"
           head="${{ github.event.pull_request.head.sha }}"
           if git diff --name-only "$base" "$head" | grep -qE '^(apps/web/|packages/shared/|package(-lock)?\.json$|\.github/workflows/web-ci\.yml$)'; then
@@ -42,9 +35,9 @@ jobs:
       - uses: actions/setup-node@v4
         if: steps.changes.outputs.run == 'true'
         with:
-          node-version: 22
+          node-version: 22.x
           cache: npm
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install
         if: steps.changes.outputs.run == 'true'
@@ -56,10 +49,10 @@ jobs:
         working-directory: apps/web
         run: npm run lint --if-present
 
-      - name: Test
+      - name: Test with coverage
         if: steps.changes.outputs.run == 'true'
         working-directory: apps/web
-        run: npm test --if-present
+        run: npm run test:coverage
 
       - name: Build
         if: steps.changes.outputs.run == 'true'
