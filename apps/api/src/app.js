@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import { getDatabaseStatus } from "./config/database.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
 
 const app = express();
 
@@ -18,6 +19,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Development request logging
 app.use(morgan("dev"));
+
+app.use("/api/teacher", teacherRoutes);
 
 // API root
 app.get("/api/v1", (req, res) => {
