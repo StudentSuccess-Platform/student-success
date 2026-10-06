@@ -629,4 +629,22 @@
   .auth-options {
     align-items: flex-start;
   }
+.auth-text-link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  }
+.auth-options .auth-text-link,
+.auth-footer .auth-text-link {
+  color: #1f4b99;
+  font-weight: 600;
+  text-decoration: none;
+  }
+.auth-text-link:hover {
+  text-decoration: underline;
+  }
+
 }
