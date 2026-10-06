@@ -232,27 +232,29 @@
 }
 
 .auth-role-options {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
-
+.auth-role-selection .auth-field-label {
+  width: 100%;
+  text-align: left;
+}
 .auth-role-option {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex: 1 1 160px;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
   height: 58px;
-  padding: 0 14px;
+  padding: 0 10px;
   background: #fff;
   border: 1px solid var(--auth-border);
   border-radius: 12px;
   cursor: pointer;
   font: inherit;
   text-align: left;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
+  box-sizing: border-box;
 }
 
 .auth-role-option:hover {
@@ -262,7 +264,7 @@
 .auth-role-option.is-selected {
   background: var(--auth-orange-soft);
   border: 2px solid var(--auth-orange);
-  padding: 0 13px;
+  padding: 0 9px;
 }
 
 .auth-role-icon {
@@ -288,19 +290,20 @@
 }
 
 .auth-role-label {
-  flex: 1 1 0;
-  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--auth-navy-soft);
+  white-space: nowrap;
 }
 
 .auth-role-dot {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: #fff;
   border: 2px solid var(--auth-border);
+  background: #fff;
 }
 
 .auth-role-option.is-selected .auth-role-dot {
@@ -317,9 +320,11 @@
 }
 
 .auth-field-group > label {
+  width: 100%;
   font-size: 13px;
   font-weight: 600;
   color: var(--auth-navy-soft);
+  text-align: left;
 }
 
 .auth-input {
@@ -619,7 +624,7 @@
   }
 
   .auth-role-options {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .auth-role-option {

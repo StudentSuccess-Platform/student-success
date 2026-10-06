@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Login from './pages/auth/Login'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import CheckEmail from './pages/auth/CheckEmail'
+import CreateAccount from './pages/auth/CreateAccount'
 
 function App() {
   const [authView, setAuthView] = useState('login')
@@ -18,7 +19,7 @@ function App() {
       {authView === 'login' && (
         <Login
           onForgotPassword={() => setAuthView('forgot-password')}
-          onCreateAccount={() => console.log('Create account coming next')}
+          onCreateAccount={() => setAuthView('create-account')}
         />
       )}
 
@@ -32,6 +33,12 @@ function App() {
       {authView === 'check-email' && (
         <CheckEmail
           email={resetEmail}
+          onBackToLogin={() => setAuthView('login')}
+        />
+      )}
+
+      {authView === 'create-account' && (
+        <CreateAccount
           onBackToLogin={() => setAuthView('login')}
         />
       )}
