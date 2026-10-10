@@ -54,7 +54,11 @@ function DashboardView({ data, isLoading, error, onActivityAction }) {
 
           <div className="dashboard-grid-row">
             <DashboardCard title="Academic Performance Trends">
-              <PerformanceTrendChart data={data.performanceTrend} />
+              <PerformanceTrendChart
+                data={data.performanceTrend}
+                tooltipLabel="Average Grade"
+                tooltipUnit="%"
+              />
             </DashboardCard>
 
             <DashboardCard title="Attendance Overview">

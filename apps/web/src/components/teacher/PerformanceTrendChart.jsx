@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { formatTrendTooltip } from '../../utils/formatTrendTooltip'
 
 const NAVY = '#13233a'
 const ORANGE = '#f36c21'
@@ -19,6 +20,8 @@ function PerformanceTrendChart({
   yKey = 'value',
   yDomain = [0, 100],
   animate = true,
+  tooltipLabel = 'Value',
+  tooltipUnit = '',
 }) {
   if (data.length === 0) {
     return <p className="chart-empty">No performance data available yet.</p>
@@ -48,6 +51,7 @@ function PerformanceTrendChart({
         <Tooltip
           contentStyle={{ borderRadius: 8, borderColor: BORDER, fontSize: 13 }}
           labelStyle={{ color: NAVY, fontWeight: 600 }}
+          formatter={(value) => formatTrendTooltip(value, tooltipLabel, tooltipUnit)}
         />
 
         <Line

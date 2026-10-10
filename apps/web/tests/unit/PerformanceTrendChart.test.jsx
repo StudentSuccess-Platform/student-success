@@ -76,4 +76,18 @@ describe('PerformanceTrendChart', () => {
     expect(screen.getByText(/no performance data available yet/i)).toBeInTheDocument()
     expect(container.querySelector('.recharts-responsive-container')).not.toBeInTheDocument()
   })
+
+  it('renders normally when a custom tooltip label and unit are provided', () => {
+    const { container } = render(
+      <PerformanceTrendChart
+        data={data}
+        animate={false}
+        tooltipLabel="Average Grade"
+        tooltipUnit="%"
+      />
+    )
+
+    expect(container.querySelector('.recharts-line')).toBeInTheDocument()
+    expect(container.querySelectorAll('.recharts-line-dot')).toHaveLength(data.length)
+  })
 })
