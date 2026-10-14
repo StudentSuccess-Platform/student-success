@@ -8,6 +8,9 @@ import CreateAccount from './pages/auth/CreateAccount'
 
 import DashboardLayout from './layouts/DashboardLayout'
 import ComingSoon from './components/common/ComingSoon'
+import TeacherDashboard from './pages/teacher/Dashboard'
+import MyClasses from './pages/teacher/MyClasses'
+import ClassDetail from './pages/teacher/ClassDetail'
 import { teacherNavItems } from './config/navConfig'
 import avatarPlaceholder from './assets/images/avatar-placeholder.png'
 
@@ -75,8 +78,9 @@ function App() {
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<ComingSoon title="Dashboard" />} />
-          <Route path="classes" element={<ComingSoon title="My Classes" />} />
+          <Route path="dashboard" element={<TeacherDashboard />} />
+          <Route path="classes" element={<MyClasses />} />
+          <Route path="classes/:classId" element={<ClassDetail />} />
           <Route path="students" element={<ComingSoon title="Students" />} />
           <Route path="reports" element={<ComingSoon title="Reports" />} />
           <Route path="settings" element={<ComingSoon title="Settings" />} />
