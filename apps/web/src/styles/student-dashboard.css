@@ -1,0 +1,66 @@
+/* Student dashboard layout */
+.student-dashboard {
+  width: 100%;
+  padding: 24px;
+}
+
+/* Header */
+.student-dashboard .dashboard-page-header {
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+/* Grid layout */
+.student-dashboard .dashboard-grid-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Grade list */
+.student-dashboard .grade-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+/* Individual subject */
+.student-dashboard .grade-item {
+  width: 100%;
+  text-align: left;
+}
+
+/* Subject name and score */
+.student-dashboard .grade-item-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: #142944;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* Progress bar background */
+.student-dashboard .grade-progress-track {
+  width: 100%;
+  height: 8px;
+  background: #e6eaf0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Progress bar fill */
+.student-dashboard .grade-progress-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .student-dashboard .dashboard-grid-row {
+    grid-template-columns: 1fr;
+  }
+}

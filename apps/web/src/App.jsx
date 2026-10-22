@@ -11,12 +11,22 @@ import ComingSoon from './components/common/ComingSoon'
 import TeacherDashboard from './pages/teacher/Dashboard'
 import MyClasses from './pages/teacher/MyClasses'
 import ClassDetail from './pages/teacher/ClassDetail'
-import { teacherNavItems } from './config/navConfig'
+import { teacherNavItems, studentNavItems } from './config/navConfig'
 import avatarPlaceholder from './assets/images/avatar-placeholder.png'
+
+import StudentDashboard from './pages/student/Dashboard'
+import StudentProgress from './pages/student/Progress'
+import StudentSupportPlan from './pages/student/SupportPlan'
 
 const teacherUser = {
   name: 'Mrs. Sarah Jenkins',
   subtitle: 'Science Department',
+  avatarUrl: avatarPlaceholder,
+}
+
+const studentUser = {
+  name: 'Liam Patel',
+  subtitle: 'Student',
   avatarUrl: avatarPlaceholder,
 }
 
@@ -84,6 +94,38 @@ function App() {
           <Route path="students" element={<ComingSoon title="Students" />} />
           <Route path="reports" element={<ComingSoon title="Reports" />} />
           <Route path="settings" element={<ComingSoon title="Settings" />} />
+        </Route>
+
+        {/* Student Portal */}
+        <Route
+          path="/student"
+          element={
+            <DashboardLayout
+              portalLabel="Student Portal"
+              navItems={studentNavItems}
+              user={studentUser}
+            />
+          }
+        >
+          <Route
+            index
+            element={<Navigate to="dashboard" replace />}
+          />
+
+          <Route
+            path="dashboard"
+            element={<StudentDashboard />}
+          />
+
+          <Route
+            path="progress"
+            element={<StudentProgress />}
+          />
+
+          <Route
+            path="support-plan"
+            element={<StudentSupportPlan />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

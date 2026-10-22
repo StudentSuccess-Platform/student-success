@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import PerformanceTrendChart from '../../src/components/teacher/PerformanceTrendChart'
+import PerformanceTrendChart from '../../src/components/common/PerformanceTrendChart'
 
 const data = [
   { label: 'Week 1', value: 78 },
