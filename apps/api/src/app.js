@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import { getDatabaseStatus } from "./config/database.js";
+import authRoutes from "./routes/authRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
 
 const app = express();
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // Development request logging
 app.use(morgan("dev"));
 
+app.use("/api/auth", authRoutes);
 app.use("/api/teacher", teacherRoutes);
 
 // API root

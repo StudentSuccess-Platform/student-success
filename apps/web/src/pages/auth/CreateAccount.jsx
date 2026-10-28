@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../state/AuthContext'
 import AuthLayout from '../../layouts/AuthLayout'
 import RoleSelector from '../../components/auth/RoleSelector'
 import '../../styles/auth.css'
@@ -10,19 +12,35 @@ import eyeOffIcon from '../../assets/icons/eye-off.svg'
 import arrowRightIcon from '../../assets/icons/arrow-right.svg'
 
 function CreateAccount({ onBackToLogin }) {
+  const navigate = useNavigate()
+  const { register } = useAuth()
   const [role, setRole] = useState('teacher')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
-    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !confirmPassword.trim()
+    ) {
       setError('Please complete all required fields.')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.')
       return
     }
 
@@ -32,11 +50,22 @@ function CreateAccount({ onBackToLogin }) {
     }
 
     setError('')
+    setIsSubmitting(true)
 
-    console.log('Create account submitted:', {
-      role,
-      email,
-    })
+    try {
+      await register({
+        email,
+        password,
+        role,
+        firstName,
+        lastName,
+      })
+      navigate('/')
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -52,6 +81,34 @@ function CreateAccount({ onBackToLogin }) {
             role={role}
             onChange={setRole}
           />
+
+          <div className="auth-field-group">
+            <label htmlFor="create-first-name">First name</label>
+
+            <div className="auth-input">
+              <input
+                id="create-first-name"
+                type="text"
+                placeholder="John"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="auth-field-group">
+            <label htmlFor="create-last-name">Last name</label>
+
+            <div className="auth-input">
+              <input
+                id="create-last-name"
+                type="text"
+                placeholder="Doe"
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+              />
+            </div>
+          </div>
 
           <div className="auth-field-group">
             <label htmlFor="create-email">Email address</label>
@@ -139,7 +196,11 @@ function CreateAccount({ onBackToLogin }) {
             </p>
           )}
 
-          <button type="submit" className="auth-submit">
+          <button
+            type="submit"
+            className="auth-submit"
+            disabled={isSubmitting}
+          >
             Create account
             <img src={arrowRightIcon} alt="" />
           </button>

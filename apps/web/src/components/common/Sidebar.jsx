@@ -1,7 +1,16 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../state/AuthContext'
 import logoMark from '../../assets/icons/dashboard/logo-mark.svg'
 
 function Sidebar({ portalLabel, navItems, user }) {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
+
+  const handleSignOut = () => {
+    logout()
+    navigate('/')
+  }
+
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -40,6 +49,15 @@ function Sidebar({ portalLabel, navItems, user }) {
           <p className="sidebar-profile-name">{user.name}</p>
           <p className="sidebar-profile-subtitle">{user.subtitle}</p>
         </div>
+
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="sidebar-sign-out"
+          aria-label="Sign out"
+        >
+          Sign out
+        </button>
       </div>
     </aside>
   )
