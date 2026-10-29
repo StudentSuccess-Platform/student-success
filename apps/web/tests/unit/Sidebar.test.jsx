@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import Sidebar from '../../src/components/common/Sidebar'
+import { AuthProvider } from '../../src/state/AuthContext'
 
 const navItems = [
   { id: 'home', label: 'Home', icon: 'home-icon.svg', path: '/portal/home' },
@@ -19,11 +20,23 @@ const user = {
   avatarUrl: 'avatar.png',
 }
 
+beforeEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+})
+
 function renderSidebar(initialPath) {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <Sidebar portalLabel="Test Portal" navItems={navItems} user={user} />
-    </MemoryRouter>
+    <AuthProvider>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Sidebar portalLabel="Test Portal" navItems={navItems} user={user} />
+      </MemoryRouter>
+    </AuthProvider>
   )
 }
 

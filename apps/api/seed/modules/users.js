@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { slug } from "../context.js";
 
 // Users, role profiles and the parent/guardian-to-student relationships.
@@ -6,6 +7,11 @@ export default {
   models: ["User", "TeacherProfile", "StudentProfile", "GuardianProfile", "GuardianStudentLink"],
   run(ctx) {
     const { faker, data, id, counts } = ctx;
+
+    // Hash password once for all synthetic users (Password123!)
+    // Use a deterministic salt for reproducible seed generation
+    const salt = "$2a$10$YXrZpDNDYPMxVt.qoM8kLe";
+    const passwordHash = bcrypt.hashSync("Password123!", salt);
 
     const makeUser = (roles) => {
       const firstName = faker.person.firstName();
@@ -17,6 +23,7 @@ export default {
         lastName,
         roles,
         isSynthetic: true,
+        passwordHash,
       };
       data.User.push(user);
       return user;

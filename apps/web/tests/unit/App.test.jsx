@@ -1,10 +1,22 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import App from '../../src/App.jsx'
 
+vi.mock('../../src/services/authApi')
+
+beforeEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+})
+
 describe('App', () => {
-  it('renders the login view by default', () => {
+  it('renders the login view by default when not authenticated', () => {
     render(<App />)
 
     expect(

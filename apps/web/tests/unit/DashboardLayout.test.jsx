@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import DashboardLayout from '../../src/layouts/DashboardLayout'
+import { AuthProvider } from '../../src/state/AuthContext'
 
 const navItems = [
   {
@@ -25,25 +26,37 @@ const user = {
   avatarUrl: 'avatar.png',
 }
 
+beforeEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+})
+
 function renderDashboard(initialPath) {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <Routes>
-        <Route
-          path="/teacher"
-          element={
-            <DashboardLayout
-              portalLabel="Teacher Portal"
-              navItems={navItems}
-              user={user}
-            />
-          }
-        >
-          <Route path="dashboard" element={<div>Dashboard page content</div>} />
-          <Route path="classes" element={<div>Classes page content</div>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <AuthProvider>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route
+            path="/teacher"
+            element={
+              <DashboardLayout
+                portalLabel="Teacher Portal"
+                navItems={navItems}
+                user={user}
+              />
+            }
+          >
+            <Route path="dashboard" element={<div>Dashboard page content</div>} />
+            <Route path="classes" element={<div>Classes page content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>
   )
 }
 

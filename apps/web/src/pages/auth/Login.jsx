@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../state/AuthContext'
 import AuthLayout from '../../layouts/AuthLayout'
 import '../../styles/auth.css'
 
@@ -9,12 +11,15 @@ import eyeOffIcon from '../../assets/icons/eye-off.svg'
 import arrowRightIcon from '../../assets/icons/arrow-right.svg'
 
 function Login({ onForgotPassword, onCreateAccount }) {
+  const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!email.trim() || !password.trim()) {
@@ -23,10 +28,16 @@ function Login({ onForgotPassword, onCreateAccount }) {
     }
 
     setError('')
+    setIsSubmitting(true)
 
-    console.log('Login submitted:', {
-      email,
-    })
+    try {
+      await login({ email, password })
+      navigate('/')
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -103,7 +114,11 @@ function Login({ onForgotPassword, onCreateAccount }) {
             </p>
           )}
 
-          <button type="submit" className="auth-submit">
+          <button
+            type="submit"
+            className="auth-submit"
+            disabled={isSubmitting}
+          >
             Sign in
             <img src={arrowRightIcon} alt="" />
           </button>
