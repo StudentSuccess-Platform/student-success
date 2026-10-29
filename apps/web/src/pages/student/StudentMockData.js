@@ -2,7 +2,7 @@ export const studentDashboardData = {
   student: {
     id: 'stu-001',
     firstName: 'Liam',
-    term: 'Fall 2026',
+    term: 'Fall 2026', 
   },
 
   summary: {
