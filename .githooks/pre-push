@@ -1,0 +1,25 @@
+#!/bin/sh
+# Pre-push guard (enabled by `npm install` via the root "prepare" script).
+# 1. Blocks pushing a branch that is behind origin/main, so outdated code is not opened for merge.
+# 2. Blocks newly added test files that are outside tests/<unit|integration|e2e>/<module>/.
+# See docs/sdlc/testing-guidelines.md. Bypass once with: git push --no-verify
+branch=$(git rev-parse --abbrev-ref HEAD)
+[ "$branch" = "main" ] && exit 0
+git fetch origin main --quiet 2>/dev/null || exit 0
+
+if ! git merge-base --is-ancestor origin/main HEAD; then
+  echo "pre-push: '$branch' is behind origin/main. Run: git merge origin/main (or git rebase origin/main)," >&2
+  echo "          resolve conflicts, re-run tests, then push again." >&2
+  exit 1
+fi
+
+bad=$(git diff --name-only --diff-filter=A origin/main...HEAD |
+  grep -E '\.(test|spec)\.[jt]sx?$' |
+  grep -Ev '^apps/[^/]+/tests/(unit|integration|e2e)/[^/]+/[^/]+$')
+if [ -n "$bad" ]; then
+  echo "pre-push: new test files must live in apps/<app>/tests/<unit|integration|e2e>/<module>/:" >&2
+  echo "$bad" | sed 's/^/  /' >&2
+  echo "See docs/sdlc/testing-guidelines.md." >&2
+  exit 1
+fi
+exit 0
