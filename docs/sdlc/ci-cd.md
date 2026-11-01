@@ -55,3 +55,17 @@ Deployment secrets live in GitHub Environments and are referenced only as `secre
 | Branch protection / required checks | Ruleset active on `main` (PR, `API CI`, `Web CI`, up to date; 0 approvals for now) |
 | Test PR demonstrating CI | Done: passed (`fb35f07`), failed on an intentional failing test (`4da3215`), passed after revert (`11d4087`) |
 | Ruleset enforcement proof | PR #18 (2026-11-01): `API CI` and `Web CI` both passed under the active "Pre merge verification" ruleset before merge to `main` |
+
+## SCRUM-13 acceptance status (checked 2026-11-01)
+| Acceptance criterion | Status | Evidence |
+|---|---|---|
+| CI runs for relevant PRs; API validation automatic | Done | `api-ci.yml`; PR #18 `API CI` passed |
+| UI validation separate from API | Done | `web-ci.yml`; PR #18 `Web CI` passed |
+| Shared/root changes trigger broader checks | Done | Path strategy above |
+| Failures visible on the PR | Done | Intentional failing test PR (`4da3215`) |
+| Required checks documented and enforced | Done | Ruleset "Pre merge verification" active on `main` |
+| Local setup and DB/seed onboarding, no prod dependency | Done | `docs/setup/local-development.md`, `AGENTS.md` |
+| Local, test/demo, final environments defined | Done | `docs/architecture/environments.md`; GitHub Environment `test` exists |
+| Secrets stay outside source control | Done | `.env` gitignored; `secrets.*` in Environments |
+| Test PR demonstrates CI | Done | `fb35f07`, `4da3215`, `11d4087`, PR #18 |
+| CD plan documented, hosting decided | Open | Deploy is a no-op; decide web host (e.g. Vercel), API/DB host, deploy trigger; create `production` Environment |
