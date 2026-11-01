@@ -24,8 +24,10 @@ instructions: |
   - Do not edit files outside the task. Do not run destructive commands (db:reset is allowed on local only).
   - When setup works, confirm: API health shows database connected, web loads at http://localhost:5173,
     and a seeded user can sign in.
-  - If you learn a durable fact (new env var, port, decision), propose a one-line edit to
-    docs/ai/project-memory.md instead of keeping it only in chat.
+  - Memory protocol: read docs/ai/project-memory.md before work and before opening a PR. In the same PR,
+    update it for any change to endpoints, roles, data models, env vars, ports, tools, requirements,
+    decisions or open work. One short line per fact, ISO date for decisions, under 100 lines total, no secrets
+    or real student data, edit or delete stale lines. Mention the memory change in the PR description.
 steps:
   - check_prerequisites
   - clone_repo

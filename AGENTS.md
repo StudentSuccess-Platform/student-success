@@ -52,4 +52,17 @@ student `judson.greenfelder.6@example.test`, parent `lorena.schneider.30@example
 - Layout: `apps/api` (Express, Mongoose), `apps/web` (React, Vite), `docs/`, `packages/shared`.
 - Tests: follow `docs/sdlc/testing-guidelines.md` (tests/<level>/<module>/, never loose in a folder). Add tests with every change.
 - Never commit secrets or real student data. Authorization is enforced by the API, not the UI.
-- Update `docs/ai/project-memory.md` when a durable decision or status changes. Keep every file here under 100 lines.
+- Keep project memory current: follow the protocol below. Keep every file here under 100 lines.
+
+## Project memory protocol (required for every agent)
+Memory file: `docs/ai/project-memory.md`. It is the shared source of truth for requirements, decisions and status,
+so every teammate's agent stays aligned on functionality and implementation.
+1. Read it before starting work, and again before opening a PR (other PRs may have changed it).
+2. Update it in the SAME PR as the change when you: add/change/remove an endpoint, route, role, data model or env var;
+   make a decision or change a requirement; change a convention, port, tool or workflow; finish or discover open work.
+3. Format: one short line per fact under the right section, with an ISO date for decisions. Name endpoints and files.
+   Edit or delete stale lines instead of appending contradictions. Move finished items out of "Open work".
+4. Budget: the file stays under 100 lines. If it is full, merge or drop the least useful lines first.
+5. Never store secrets, tokens, real student data or personal details. Seeded demo accounts are fine.
+6. Merge conflicts: keep both teammates' facts, prefer the newer date, remove true duplicates.
+7. Tell the human what you changed in memory (one line in the PR description under "Memory").
