@@ -11,6 +11,7 @@ pipeline -> workflow run, merge request -> pull request, CI/CD variables -> Secr
 |---|---|---|---|
 | API CI (check name `API CI`) | `.github/workflows/api-ci.yml` | every PR to `main` | install, lint, tests (with a MongoDB service), seed and consistency check, server smoke test that requires a database connection |
 | Web CI (check name `Web CI`) | `.github/workflows/web-ci.yml` | every PR to `main` | install, lint, test, build; dormant until `apps/web/package-lock.json` exists |
+| Browser E2E (check name `Browser E2E`) | `.github/workflows/web-ci.yml` (second job) | every PR to `main` (self-filters to web, API, shared, root changes) | MongoDB service, seed, start API and web app, Playwright specs from `apps/web/tests/e2e` in Chrome; traces uploaded on failure. Not a required check yet: add it to the ruleset once it has been stable. |
 | Deploy | `.github/workflows/deploy.yml` | manual (`workflow_dispatch`) | placeholder, no-op |
 
 ### Path strategy
