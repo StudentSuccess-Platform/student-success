@@ -34,6 +34,7 @@ Last updated: 2026-11-01.
   PR required, API CI + Web CI required, branch up to date, no force-push/delete, 0 approvals, no bypass.
 - Reviews: authors review and test their own work for now; raise approvals to 1 when the backlog shrinks.
 - .githooks/pre-push (enabled by npm install): blocks a branch behind origin/main and misplaced new test files.
+- Browser tests: Playwright in apps/web/tests/e2e/{auth,teacher,access} (npm run test:e2e; needs seeded DB + both servers; not in CI yet).
 - Tests live in tests/<unit|integration|e2e>/<module>/ (docs/sdlc/testing-guidelines.md). Existing web tests in
   apps/web/tests/unit are still flat; migrate them into module folders (open item).
 - Deploy workflow is a manual no-op; hosting target undecided.

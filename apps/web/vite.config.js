@@ -7,7 +7,9 @@ export default defineConfig({
   test: {
     // 1. Specify your test environment (e.g., 'jsdom' or 'happy-dom' for frontend UI)
     environment: 'jsdom',
-    setupFiles: './tests/setup.js', 
+    setupFiles: './tests/setup.js',
+    // Browser tests run with Playwright (npm run test:e2e), never under Vitest.
+    exclude: ['**/node_modules/**', '**/dist/**', 'tests/e2e/**'],
     
     // 2. Configure code coverage
     coverage: {
