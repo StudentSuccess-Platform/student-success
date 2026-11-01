@@ -30,5 +30,6 @@ No production service is needed for any step below.
 
 ## Notes
 - The API connects to MongoDB using `MONGODB_URI`. It still starts (and `/api/v1/health` works) if the database is down; health then reports `database: disconnected`.
-- The web app (`apps/web`) is not scaffolded yet, so compose has no `web` service.
+- The web app runs with `cd apps/web && npm run dev` (http://localhost:5173); compose has no `web` service.
+- Set `JWT_SECRET` in `apps/api/.env` (the example value works locally). Agent-friendly guide: [AGENTS.md](../../AGENTS.md). Test layout and push rules: [testing-guidelines](../sdlc/testing-guidelines.md).
 - Ports: API 3000, Web 5173, MongoDB 27017, Ollama 11434.
