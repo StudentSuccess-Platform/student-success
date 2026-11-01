@@ -54,3 +54,4 @@ Deployment secrets live in GitHub Environments and are referenced only as `secre
 | Hosting target for test/demo/production | Undecided (team decision) |
 | Branch protection / required checks | Ruleset active on `main` (PR, `API CI`, `Web CI`, up to date; 0 approvals for now) |
 | Test PR demonstrating CI | Done: passed (`fb35f07`), failed on an intentional failing test (`4da3215`), passed after revert (`11d4087`) |
+| Ruleset enforcement proof | PR #18 (2026-11-01): `API CI` and `Web CI` both passed under the active "Pre merge verification" ruleset before merge to `main` |

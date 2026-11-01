@@ -1,5 +1,6 @@
 # Project memory (shared, keep under 100 lines)
-Short durable facts for humans and AI agents. Edit in a PR. Remove entries that stop being true.
+Short durable facts for humans and AI agents. Update in the same PR as the change (protocol: AGENTS.md).
+Remove entries that stop being true.
 Last updated: 2026-11-01.
 
 ## Product
@@ -43,4 +44,5 @@ Last updated: 2026-11-01.
 
 ## Decisions log
 - 2026-10: monorepo; MongoDB; JWT auth; seed data is synthetic (Faker).
-- 2026-11-01: ruleset repaired to actually target main; required checks added; test structure enforced by hook.
+- 2026-11-01: ruleset repaired to target main; required checks added; test structure enforced by hook (PR #18 CI green).
+- 2026-11-01: agents must update this file in the same PR as any requirement/implementation change.

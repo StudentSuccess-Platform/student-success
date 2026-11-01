@@ -10,3 +10,4 @@ SCRUM-
 - [ ] Tests added or updated
 - [ ] No secrets or real student data committed
 - [ ] Docs updated if setup, env vars or workflow changed
+- [ ] `docs/ai/project-memory.md` updated if endpoints, requirements, decisions, env or workflow changed
