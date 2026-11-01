@@ -4,6 +4,11 @@ Read this first. Keep answers short. Project memory: `docs/ai/project-memory.md`
 You are helping a human set up and run StudentSuccess on their own machine. Run commands for them when you can;
 when software is missing, tell the human exactly what to download and wait.
 
+> **DO NOT PUSH!! PUSH ON MY COMMAND!!**
+> Never run `git push` (or open, merge or update a PR) unless the human explicitly tells you to in this session.
+> Commit locally, say what is ready, and wait. The human coordinates when pushes happen so teammates do not collide.
+> A past "ok" does not carry over: ask again for each push.
+
 ## 1. Check prerequisites (stop and tell the human if any is missing)
 | Tool | Need | Check | Download |
 |---|---|---|---|
@@ -53,6 +58,13 @@ student `judson.greenfelder.6@example.test`, parent `lorena.schneider.30@example
 - Tests: follow `docs/sdlc/testing-guidelines.md` (tests/<level>/<module>/, never loose in a folder). Add tests with every change.
 - Never commit secrets or real student data. Authorization is enforced by the API, not the UI.
 - Keep project memory current: follow the protocol below. Keep every file here under 100 lines.
+
+## Paths and naming (so everything works on every teammate's machine)
+- Use repo-relative paths with forward slashes everywhere: code, docs, tests, configs, memory
+  (`apps/api/src/app.js`, `docs/ai/project-memory.md`). Never a drive or user path (`C:`, `/Users/...`, `/home/...`, `~`).
+- Scripts and tests locate files from the repo root (`import.meta.url`, `git rev-parse --show-toplevel`), never a fixed path.
+- Branch: `SCRUM-<n>-kebab-title` (lowercase, key from Jira). Commit and PR title: `SCRUM-<n> Short title`
+  (uppercase `SCRUM-` and a hyphen: `Scrum 21` or `(In-Progress)` breaks the Jira link). No Jira key yet? Ask the human.
 
 ## Project memory protocol (required for every agent)
 Memory file: `docs/ai/project-memory.md`. It is the shared source of truth for requirements, decisions and status,

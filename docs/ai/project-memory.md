@@ -28,6 +28,8 @@ Last updated: 2026-11-01.
 ## Workflow and rules
 - Jira keys SCRUM-<n>; branch SCRUM-<n>-title; PR to main. Ruleset "Pre merge verification" is active:
   PR required, API CI + Web CI required, branch up to date, no force-push/delete, 0 approvals, no bypass.
+- Agents never push or open/merge PRs until the human says so ("push on my command"); humans coordinate pushes.
+- Naming: branch SCRUM-<n>-kebab-title; commit/PR "SCRUM-<n> Short title" (not "Scrum 21"); all paths repo-relative.
 - Reviews: authors review and test their own work for now; raise approvals to 1 when the backlog shrinks.
 - .githooks/pre-push (enabled by npm install): blocks a branch behind origin/main and misplaced new test files.
 - Tests live in tests/<unit|integration|e2e>/<module>/ (docs/sdlc/testing-guidelines.md). Existing web tests in
