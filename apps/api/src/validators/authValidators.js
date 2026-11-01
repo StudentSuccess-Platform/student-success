@@ -37,3 +37,20 @@ export function validateLogin(body) {
     throw httpError(400, "Password is required");
   }
 }
+
+export function validateForgotPassword(body) {
+  const { email } = body;
+  if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email)) {
+    throw httpError(400, "Invalid email format");
+  }
+}
+
+export function validateResetPassword(body) {
+  const { token, password } = body;
+  if (!token || typeof token !== "string") {
+    throw httpError(400, "Reset token is required");
+  }
+  if (!password || typeof password !== "string" || password.length < 8) {
+    throw httpError(400, "Password must be at least 8 characters");
+  }
+}

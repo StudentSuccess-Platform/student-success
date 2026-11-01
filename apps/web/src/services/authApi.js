@@ -1,3 +1,5 @@
+import { request } from './http'
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 async function handleResponse(response) {
@@ -82,3 +84,15 @@ export async function getMe(token) {
     throw originalError
   }
 }
+
+export function forgotPassword(email) {
+  return request('/api/v1/auth/forgot-password', { method: 'POST', body: { email } })
+}
+
+export function resetPassword({ token, password }) {
+  return request('/api/v1/auth/reset-password', {
+    method: 'POST',
+    body: { token, password },
+  })
+}
+

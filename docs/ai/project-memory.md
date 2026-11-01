@@ -23,7 +23,11 @@ Last updated: 2026-11-01.
 - POST /api/auth/register|login, GET /api/auth/me; bcrypt + JWT (JWT_SECRET required).
 - Public signup roles: teacher, student, parent (never admin). Web: AuthContext, ProtectedRoute, role redirects.
 - Seeded users: password Password123! (e.g. carley.beer.2@example.test teacher).
-- Student/parent portals are placeholders; teacher dashboard still uses mock data.
+- 2026-11-01: API under /api/v1 (unversioned /api/... kept as alias). Endpoints and rules: docs/api/endpoints.md.
+- Built: /teacher/dashboard|classes|classes/:id, /student/dashboard, /parent/children[/:id/dashboard],
+  /auth/forgot-password|reset-password. Teacher routes need role teacher (incl. /recommendations).
+- Web teacher dashboard/classes now call the API (hooks/useApiResource). Student/parent web pages and a
+  reset-password page are not built yet; email sending is a log-only stub (utils/mailer.js).
 
 ## Workflow and rules
 - Jira keys SCRUM-<n>; branch SCRUM-<n>-title; PR to main. Ruleset "Pre merge verification" is active:
@@ -35,9 +39,8 @@ Last updated: 2026-11-01.
 - Deploy workflow is a manual no-op; hosting target undecided.
 
 ## Open work
-- Relationship-based access checks; hide teacher notes from students/parents.
-- Real teacher/student/parent endpoints replacing frontend mock data.
-- Forgot/reset password endpoints. Protect POST /api/teacher/recommendations (needs auth + teacher role).
+- Web: student dashboard (PR #17) and parent portal should call /student and /parent; reset-password page; real email provider.
+- Teacher-to-student relationship check on POST /teacher/recommendations; goal targets (summary.termGoal is null).
 - AI client bug: services/ai/recommendation.js passes the literal string "process.env.OPENAI_API_KEY";
   needs a provider abstraction (LLM_PROVIDER, LLM_BASE_URL, LLM_MODEL).
 - CORS_ORIGIN is defined but not enforced.
