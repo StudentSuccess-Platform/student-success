@@ -29,12 +29,17 @@ Use it to verify workflow edits and to debug a failing or misbehaving workflow b
 the jobs; a real run on a PR is still the final proof.
 
 ## Required checks before merge
-Configured in GitHub as the ruleset "Pre merge verification" (Settings -> Rules): require a PR and require the
-status checks `API CI` and `Web CI` on `main`. This is a repository setting and cannot be set from code.
-Failures show on the PR checks tab.
+Configured in GitHub as the ruleset "Pre merge verification" (Settings -> Rules). It targets the default branch (`main`)
+and enforces: a pull request is required, `API CI` and `Web CI` must pass, the branch must be up to date with `main`
+before merging, and `main` cannot be deleted or force-pushed. There is no bypass list, so it applies to admins too.
+Required approvals are currently 0 (authors review and test their own work while the backlog is large); raise
+`required_approving_review_count` to 1 once the backlog is down. Failures show on the PR checks tab.
 
-**Enforcement caveat:** GitHub does not enforce rulesets on private repositories without a paid plan (Team/Pro).
-Until then the rule is followed by convention: merge only when both checks are green.
+The org is on the GitHub Team plan, so the ruleset is enforced on this private repo. Rules live in repo settings and
+cannot be set from code. Check them with `gh api repos/StudentSuccess-Platform/student-success/rulesets`.
+
+Optional local guard: `npm install` points git at `.githooks/`, whose `pre-push` hook blocks pushing a branch that is
+behind `origin/main` (bypass once with `git push --no-verify`).
 
 ## Secrets
 Never committed. `.env` files are gitignored; only `.env.example` is tracked.
@@ -44,8 +49,8 @@ Deployment secrets live in GitHub Environments and are referenced only as `secre
 | Item | Status |
 |---|---|
 | CI for API | Implemented |
-| CI for Web | Dormant, pending frontend scaffold |
+| CI for Web | Implemented |
 | Deploy workflow | Skeleton only |
 | Hosting target for test/demo/production | Undecided (team decision) |
-| Branch protection / required checks | Ruleset configured; enforcement pending a GitHub plan that supports private repos |
+| Branch protection / required checks | Ruleset active on `main` (PR, `API CI`, `Web CI`, up to date; 0 approvals for now) |
 | Test PR demonstrating CI | Done: passed (`fb35f07`), failed on an intentional failing test (`4da3215`), passed after revert (`11d4087`) |
