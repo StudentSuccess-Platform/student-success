@@ -113,14 +113,9 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      # One install from the repo root covers both apps (a per-app `npm ci` would replace the other's packages).
       - name: Install
         if: steps.changes.outputs.run == 'true'
-        working-directory: apps/web
-        run: npm ci
-
-      - name: Install API
-        if: steps.changes.outputs.run == 'true'
-        working-directory: apps/api
         run: npm ci
 
       - name: Seed database
