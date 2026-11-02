@@ -118,6 +118,11 @@ jobs:
         working-directory: apps/web
         run: npm ci
 
+      - name: Install API
+        if: steps.changes.outputs.run == 'true'
+        working-directory: apps/api
+        run: npm ci
+
       - name: Seed database
         if: steps.changes.outputs.run == 'true'
         working-directory: apps/api
