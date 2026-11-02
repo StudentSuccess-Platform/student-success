@@ -1,10 +1,11 @@
 import { useParams } from 'react-router-dom'
 import ComingSoon from '../../components/common/ComingSoon'
-import { classes } from './classesMockData'
+import useTeacherClassesData from './useTeacherClassesData'
 
 function ClassDetail() {
   const { classId } = useParams()
-  const classItem = classes.find((item) => item.id === classId)
+  const { data } = useTeacherClassesData()
+  const classItem = data?.classes.find((item) => item.id === classId)
 
   return <ComingSoon title={classItem ? classItem.name : 'Class'} />
 }

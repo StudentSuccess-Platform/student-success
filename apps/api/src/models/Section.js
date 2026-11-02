@@ -10,6 +10,7 @@ const sectionSchema = new Schema(
     teacher: { type: Schema.Types.ObjectId, ref: "TeacherProfile", required: true },
     term: { type: String, required: true, trim: true },
     period: { type: Number, min: 1 },
+    room: { type: String, trim: true },
   },
   { timestamps: true },
 );

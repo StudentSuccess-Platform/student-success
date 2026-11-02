@@ -24,7 +24,7 @@ User (roles: teacher | student | parent | admin)
 | GuardianProfile | parent/guardian details | user, phone |
 | GuardianStudentLink | which students a guardian may access | guardian, student, relationship, active; unique pair |
 | Course | catalog entry | code (unique), title, subject |
-| Section | a class: course + teacher + term | course, teacher, term, period |
+| Section | a class: course + teacher + term | course, teacher, term, period, room |
 | Enrollment | student in a section | section, student, status; unique pair |
 | Assignment | graded item | section, category, pointsPossible, dueDate |
 | Grade | assignment-level grade | assignment, student, pointsEarned, status; unique pair |

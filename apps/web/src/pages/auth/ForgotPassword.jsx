@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { forgotPassword } from '../../services/authApi'
 import AuthLayout from '../../layouts/AuthLayout'
 import '../../styles/auth.css'
 
@@ -9,8 +10,9 @@ import arrowRightWhiteIcon from '../../assets/icons/arrow-right-white.svg'
 function ForgotPassword({ onBackToLogin, onResetRequested }) {
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!email.trim()) {
@@ -19,12 +21,16 @@ function ForgotPassword({ onBackToLogin, onResetRequested }) {
     }
 
     setError('')
+    setSubmitting(true)
 
-    console.log('Password reset requested:', {
-      email,
-    })
-
-    onResetRequested(email)
+    try {
+      await forgotPassword(email.trim())
+      onResetRequested(email)
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -78,6 +84,7 @@ function ForgotPassword({ onBackToLogin, onResetRequested }) {
             <button
               type="submit"
               className="auth-submit auth-submit--accent"
+              disabled={submitting}
             >
               Send reset link
               <img src={arrowRightWhiteIcon} alt="" />

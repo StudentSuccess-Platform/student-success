@@ -17,6 +17,9 @@ const userSchema = new Schema(
     },
     status: { type: String, enum: ["active", "disabled"], default: "active" },
     passwordHash: { type: String, select: false },
+    // Password reset: only a hash of the emailed token is stored, and it expires.
+    passwordResetHash: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
     isSynthetic: { type: Boolean, default: false },
   },
   { timestamps: true },

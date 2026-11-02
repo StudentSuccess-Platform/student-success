@@ -15,7 +15,7 @@ function DashboardView({ data, isLoading, error, onActivityAction }) {
     <div className="teacher-dashboard">
       <div className="dashboard-page-header">
         <h1>Dashboard</h1>
-        <p>Welcome back, Mrs. Jenkins. Here&apos;s what&apos;s happening across your classes.</p>
+        <p>Welcome back. Here&apos;s what&apos;s happening across your classes.</p>
       </div>
 
       {isLoading && <p className="dashboard-status">Loading dashboard…</p>}

@@ -2,11 +2,31 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import TeacherDashboard from '../../src/pages/teacher/Dashboard'
+import { getDashboard } from '../../src/services/teacherApi'
 import {
   interventions,
   recentActivity,
   statsSummary,
 } from '../../src/pages/teacher/dashboardMockData'
+
+vi.mock('../../src/services/teacherApi', async () => {
+  const mock = await import('../../src/pages/teacher/dashboardMockData')
+  return {
+    getDashboard: vi.fn(() =>
+      Promise.resolve({
+        summary: mock.statsSummary,
+        performanceTrend: mock.performanceTrend,
+        attendanceOverview: mock.attendanceOverview,
+        interventions: mock.interventions,
+        recentActivity: mock.recentActivity,
+      })
+    ),
+    getClasses: vi.fn(),
+  }
+})
+
+const loaded = () =>
+  screen.findByRole('heading', { name: 'Academic Performance Trends' })
 
 beforeEach(() => {
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
@@ -34,8 +54,9 @@ beforeEach(() => {
 })
 
 describe('TeacherDashboard', () => {
-  it('renders the page heading and summary stats from mock data', () => {
+  it('renders the page heading and summary stats from the API', async () => {
     const { container } = render(<TeacherDashboard />)
+    await loaded()
     const statGrid = within(container.querySelector('.stat-card-grid'))
 
     expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
@@ -47,8 +68,9 @@ describe('TeacherDashboard', () => {
     expect(statGrid.getByText(`${statsSummary.averageAttendance}%`)).toBeInTheDocument()
   })
 
-  it('renders all four dashboard sections', () => {
+  it('renders all four dashboard sections', async () => {
     render(<TeacherDashboard />)
+    await loaded()
 
     expect(
       screen.getByRole('heading', { name: 'Academic Performance Trends' })
@@ -64,8 +86,9 @@ describe('TeacherDashboard', () => {
     ).toBeInTheDocument()
   })
 
-  it('lists every student flagged for intervention in the mock data', () => {
+  it('lists every student flagged for intervention', async () => {
     render(<TeacherDashboard />)
+    await loaded()
 
     for (const student of interventions) {
       expect(screen.getByText(student.name)).toBeInTheDocument()
@@ -78,6 +101,7 @@ describe('TeacherDashboard', () => {
     const actionableItem = recentActivity.find((item) => item.actionLabel)
 
     render(<TeacherDashboard />)
+    await loaded()
 
     await user.click(screen.getByRole('button', { name: actionableItem.actionLabel }))
 
@@ -87,5 +111,16 @@ describe('TeacherDashboard', () => {
     )
 
     consoleSpy.mockRestore()
+  })
+
+  it('shows a loading message, then an error message when the request fails', async () => {
+    getDashboard.mockImplementationOnce(() => Promise.reject(new Error('boom')))
+
+    render(<TeacherDashboard />)
+
+    expect(screen.getByText(/loading dashboard/i)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/couldn.t load dashboard data/i)
+    ).toBeInTheDocument()
   })
 })

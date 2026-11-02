@@ -28,6 +28,7 @@ export default {
         teacher: data.TeacherProfile[i % data.TeacherProfile.length]._id,
         term: "2025-Fall",
         period: i + 1,
+        room: `Room ${101 + i}`,
       });
     });
 
