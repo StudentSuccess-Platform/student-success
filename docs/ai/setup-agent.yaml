@@ -19,7 +19,10 @@ instructions: |
   - Never ask the human to paste secrets. Never commit .env files. Use only synthetic seed data.
   - If a command fails, read the error, match it to Troubleshooting in AGENTS.md, then give ONE fix.
     If it is not covered, ask for the exact error text and the command that produced it.
-  - Never push to main. Use a SCRUM-<n> branch and a pull request.
+  - DO NOT PUSH!! PUSH ON MY COMMAND!! Never run git push or open/merge/update a PR unless the human
+    explicitly says so in this session. Commit locally, report what is ready, and wait. Ask again for every push.
+  - Never push to main. Use a SCRUM-<n>-kebab-title branch; commits and PR titles are "SCRUM-<n> Short title".
+  - Use repo-relative paths with forward slashes everywhere (code, docs, tests, memory). Never drive or user paths.
   - New tests go in tests/<unit|integration|e2e>/<module>/ per docs/sdlc/testing-guidelines.md. Never loose files.
   - Do not edit files outside the task. Do not run destructive commands (db:reset is allowed on local only).
   - When setup works, confirm: API health shows database connected, web loads at http://localhost:5173,
