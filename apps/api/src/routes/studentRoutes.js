@@ -1,7 +1,7 @@
 import express from "express";
 import {
+  dashboard,
   getStudentAttendance,
-  getStudentDashboard,
   getStudentGrades,
   getStudentProfile,
 } from "../controllers/studentController.js";
@@ -13,7 +13,7 @@ router.use(requireAuth, requireRole("student"));
 router.get("/profile", getStudentProfile);
 router.get("/grades", getStudentGrades);
 router.get("/attendance", getStudentAttendance);
-router.get("/me/dashboard", getStudentDashboard);
-// router.get("/dashboard", dashboard);
+router.get("/dashboard", dashboard);
+router.get("/me/dashboard", dashboard);
 
 export default router;

@@ -1,52 +1,74 @@
-
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import SupportPlan from '../../src/pages/student/SupportPlan'
 import { studentDashboardData } from '../../src/pages/student/StudentMockData'
 
+const { getStudentDashboard } = vi.hoisted(() => ({
+  getStudentDashboard: vi.fn(),
+}))
+
+vi.mock('../../src/state/AuthContext', () => ({
+  useAuth: () => ({ token: 'mock-student-token' }),
+}))
+
+vi.mock('../../src/services/studentApi', () => ({
+  getStudentDashboard,
+}))
+
+const dashboardWithPlan = (supportPlan) => ({
+  supportPlan,
+})
+
 describe('StudentSupportPlan', () => {
-  it('displays the approved remediation plan', () => {
+  beforeEach(() => {
+    getStudentDashboard.mockReset()
+    getStudentDashboard.mockResolvedValue(
+      dashboardWithPlan(studentDashboardData.supportPlan),
+    )
+  })
+
+  it('fetches the signed-in student dashboard and displays its approved plan', async () => {
     render(<SupportPlan />)
 
-    expect(screen.getByText('Strengthen fraction skills'))
-      .toBeInTheDocument()
+    expect(await screen.findByText('Strengthen fraction skills')).toBeInTheDocument()
+    expect(getStudentDashboard).toHaveBeenCalledWith('mock-student-token')
 
     for (const activity of studentDashboardData.supportPlan.activities) {
-      expect(screen.getByText(activity.title)).toBeInTheDocument()
+      expect(await screen.findByText(activity.title)).toBeInTheDocument()
     }
   })
 
-  it('displays a message when no plan exists', () => {
-    render(<SupportPlan plan={null} />)
+  it('displays a message when no plan exists', async () => {
+    getStudentDashboard.mockResolvedValueOnce(dashboardWithPlan(null))
+
+    render(<SupportPlan />)
 
     expect(
-      screen.getByText(/don't currently have an approved support plan/i)
+      await screen.findByText(/don't currently have an approved support plan/i),
     ).toBeInTheDocument()
   })
 
-  it('hides plans awaiting teacher approval', () => {
-    const pendingPlan = {
-      ...studentDashboardData.supportPlan,
-      status: 'pending',
-    }
+  it('hides plans awaiting teacher approval', async () => {
+    getStudentDashboard.mockResolvedValueOnce(
+      dashboardWithPlan({
+        ...studentDashboardData.supportPlan,
+        status: 'pending_review',
+      }),
+    )
 
-    render(<SupportPlan plan={pendingPlan} />)
+    render(<SupportPlan />)
 
     expect(
-      screen.queryByText('Strengthen fraction skills')
-    ).not.toBeInTheDocument()
+      await screen.findByText(/don't currently have an approved support plan/i),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Strengthen fraction skills')).not.toBeInTheDocument()
   })
 
-  it('hides rejected plans', () => {
-    const rejectedPlan = {
-      ...studentDashboardData.supportPlan,
-      status: 'rejected',
-    }
+  it('displays a request error', async () => {
+    getStudentDashboard.mockRejectedValueOnce(new Error('Unable to load dashboard'))
 
-    render(<SupportPlan plan={rejectedPlan} />)
+    render(<SupportPlan />)
 
-    expect(
-      screen.queryByText('Strengthen fraction skills')
-    ).not.toBeInTheDocument()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load dashboard')
   })
 })

@@ -1,9 +1,37 @@
+import { useEffect, useState } from 'react'
 import PageHeader from '../../components/common/PageHeader'
 import DashboardCard from '../../components/common/DashboardCard'
-import { studentDashboardData } from './StudentMockData'
+import { getStudentDashboard } from '../../services/studentApi'
+import { useAuth } from '../../state/AuthContext'
 
-function SupportPlan({ plan = studentDashboardData.supportPlan }) {
-  if (!plan || plan.status !== 'approved') {
+function SupportPlan() {
+  const { token } = useAuth()
+  const [plan, setPlan] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let active = true
+
+    getStudentDashboard(token)
+      .then((dashboard) => {
+        if (active) setPlan(dashboard.supportPlan)
+      })
+      .catch((requestError) => {
+        if (active) setError(requestError.message)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [token])
+
+  if (loading) return <p>Loading your support plan...</p>
+  if (error) return <p role="alert">{error}</p>
+  if (!plan || !['approved', 'published'].includes(plan.status)) {
     return <p>You don't currently have an approved support plan.</p>
   }
 

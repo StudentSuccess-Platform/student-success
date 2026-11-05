@@ -109,9 +109,10 @@ describe("student endpoints", { skip: uri ? false : "set MONGODB_URI to a MongoD
       section: section._id,
       teacher: teacher._id,
       title: "Algebra support",
-      status: "approved",
+      status: "published",
       reviewedBy: teacher._id,
       reviewedAt: new Date("2026-09-12"),
+      publishedAt: new Date("2026-09-13"),
     });
     await RemediationItem.create({
       plan: plan._id,
@@ -175,7 +176,7 @@ describe("student endpoints", { skip: uri ? false : "set MONGODB_URI to a MongoD
     assert.equal(dashboard.summary.currentGrade, 90);
     assert.equal(dashboard.summary.attendance, 100);
     assert.equal(dashboard.grades.length, 1);
-    assert.equal(dashboard.grades[0].subject, "Math");
+    assert.equal(dashboard.grades[0].subject, "Algebra");
     assert.equal(dashboard.grades[0].grade, 90);
     assert.equal(dashboard.performanceTrend.length, 1);
     assert.equal(dashboard.performanceTrend[0].value, 90);

@@ -108,7 +108,7 @@ function Dashboard() {
         </DashboardCard>
       </div>
 
-      {['approved', 'published'].includes(data.supportPlan.status) && (
+      {['approved', 'published'].includes(data.supportPlan?.status) && (
         <DashboardCard title="Your learning support plan">
           {data.supportPlan.activities.map((activity) => (
             <div key={activity.id}>
