@@ -5,7 +5,6 @@ import {
   getStudentGrades,
   getStudentProfile,
 } from "../controllers/studentController.js";
-import { dashboard } from "../controllers/studentController.js";
 import { requireAuth, requireRole } from "../middleware/requireAuth.js";
 
 const router = express.Router();
@@ -15,6 +14,6 @@ router.get("/profile", getStudentProfile);
 router.get("/grades", getStudentGrades);
 router.get("/attendance", getStudentAttendance);
 router.get("/me/dashboard", getStudentDashboard);
-router.get("/dashboard", dashboard);
+// router.get("/dashboard", dashboard);
 
 export default router;
