@@ -1,8 +1,32 @@
 
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import StudentDashboard from '../../src/pages/student/Dashboard'
 import { studentDashboardData } from '../../src/pages/student/StudentMockData'
+
+const { getStudentDashboard } = vi.hoisted(() => ({
+  getStudentDashboard: vi.fn(),
+}))
+
+// Mock the useAuth hook to provide a test user and token
+vi.mock('../../src/state/AuthContext', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'stu-001',
+      firstName: 'Liam',
+      lastName: 'Patel',
+      email: 'student@example.test',
+      roles: ['student'],
+    },
+    token: 'mock-student-token',
+    isAuthenticated: true,
+    loading: false,
+  }),
+}))
+
+vi.mock('../../src/services/studentApi', () => ({
+  getStudentDashboard,
+}))
 
 // Test dashboard content without depending on chart dimensions.
 vi.mock('../../src/components/common/PerformanceTrendChart', () => ({
@@ -10,53 +34,58 @@ vi.mock('../../src/components/common/PerformanceTrendChart', () => ({
 }))
 
 describe('StudentDashboard', () => {
-  it('displays the student name and summary statistics', () => {
+  beforeEach(() => {
+    getStudentDashboard.mockReset()
+    getStudentDashboard.mockResolvedValue(studentDashboardData)
+  })
+
+  it('loads dashboard data with the auth token and displays summary statistics', async () => {
     const { container } = render(<StudentDashboard />)
 
     expect(
-      screen.getByRole('heading', { name: /good morning, liam/i })
+      await screen.findByRole('heading', { name: /good morning, liam/i })
     ).toBeInTheDocument()
+    expect(getStudentDashboard).toHaveBeenCalledWith('mock-student-token')
 
     const stats = within(container.querySelector('.stat-card-grid'))
 
-    expect(stats.getByText('84%')).toBeInTheDocument()
-    expect(stats.getByText('94%')).toBeInTheDocument()
-    // expect(stats.getByText(/84%\s*\/\s*88%/)).toBeInTheDocument()
+    expect(await stats.findByText('84%')).toBeInTheDocument()
+    expect(await stats.findByText('94%')).toBeInTheDocument()
   })
 
-  it('displays all student subjects', () => {
+  it('displays all student subjects', async () => {
     render(<StudentDashboard />)
 
     for (const course of studentDashboardData.grades) {
-      expect(screen.getByText(course.subject)).toBeInTheDocument()
+      expect(await screen.findByText(course.subject)).toBeInTheDocument()
     }
   })
 
-  it('displays academic goals', () => {
+  it('displays academic goals', async () => {
     render(<StudentDashboard />)
 
     for (const goal of studentDashboardData.goals) {
-      expect(screen.getByText(goal.title)).toBeInTheDocument()
+      expect(await screen.findByText(goal.title)).toBeInTheDocument()
     }
   })
 
-  it('displays teacher feedback', () => {
+  it('displays teacher feedback', async () => {
     render(<StudentDashboard />)
 
     expect(
-      screen.getByText(studentDashboardData.teacherFeedback.message)
+      await screen.findByText(studentDashboardData.teacherFeedback.message)
     ).toBeInTheDocument()
   })
 
-  it('displays the approved support plan', () => {
+  it('displays the approved support plan', async () => {
     render(<StudentDashboard />)
 
     for (const activity of studentDashboardData.supportPlan.activities) {
-      expect(screen.getByText(activity.title)).toBeInTheDocument()
+      expect(await screen.findByText(activity.title)).toBeInTheDocument()
     }
   })
 
-  it('does not display an unapproved support plan', () => {
+  it('does not display an unapproved support plan', async () => {
     const testData = {
       ...studentDashboardData,
       supportPlan: {
@@ -64,17 +93,20 @@ describe('StudentDashboard', () => {
         status: 'pending',
       },
     }
+    getStudentDashboard.mockResolvedValueOnce(testData)
 
-    render(<StudentDashboard data={testData} />)
+    render(<StudentDashboard />)
 
+    await screen.findByRole('heading', { name: /good morning, liam/i })
     expect(
-      screen.queryByText(/your approved learning support plan/i)
+      screen.queryByText(testData.supportPlan.activities[0].title)
     ).not.toBeInTheDocument()
   })
 
-  it('renders the performance chart component', () => {
+  it('renders the performance chart component', async () => {
     render(<StudentDashboard />)
 
+    await screen.findByRole('heading', { name: /good morning, liam/i })
     expect(
       screen.getByTestId('performance-chart')
     ).toBeInTheDocument()
