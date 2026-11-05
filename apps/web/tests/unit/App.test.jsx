@@ -72,7 +72,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /send reset link/i }))
 
     expect(
-      screen.getByRole('heading', { name: /check your email/i })
+      await screen.findByRole('heading', { name: /check your email/i })
     ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /resend email/i }))

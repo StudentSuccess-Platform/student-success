@@ -29,6 +29,8 @@ apps/<app>/tests/
 |---|---|---|---|
 | api | `npm test` | `npm run test:unit`, `npm run test:module -- auth`, `npm run test:smoke` | `npm run lint` |
 | web | `npm run test:run` | `npx vitest run tests/unit/auth` | `npm run lint` |
+| web browser (Playwright) | `npm run test:e2e` | `npm run test:e2e -- tests/e2e/auth` | `npm run lint` |
+Browser tests (`apps/web/tests/e2e/<module>/*.spec.js`) need MongoDB seeded, the API and the web app running; see `apps/web/tests/e2e/README.md`.
 Database tests need `MONGODB_URI` (for example `mongodb://localhost:27017`) and Docker mongo running; they skip otherwise.
 
 ## Push requirements (enforced by `.githooks/pre-push`, installed by `npm install`)

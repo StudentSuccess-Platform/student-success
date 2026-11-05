@@ -6,6 +6,8 @@ import { getDatabaseStatus } from "./config/database.js";
 import authRoutes from "./routes/authRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+import parentRoutes from "./routes/parentRoutes.js";
 
 const app = express();
 
@@ -22,9 +24,11 @@ app.use(express.urlencoded({ extended: true }));
 // Development request logging
 app.use(morgan("dev"));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/student", studentRoutes);
-app.use("/api/teacher", teacherRoutes);
+// Canonical paths live under /api/v1; the unversioned paths remain as aliases for existing callers.
+app.use(["/api/v1/auth", "/api/auth"], authRoutes);
+app.use(["/api/v1/teacher", "/api/teacher"], teacherRoutes);
+app.use(["/api/v1/student", "/api/student"], studentRoutes);
+app.use(["/api/v1/parent", "/api/parent"], parentRoutes);
 
 // API root
 app.get("/api/v1", (req, res) => {

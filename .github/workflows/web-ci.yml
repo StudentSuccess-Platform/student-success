@@ -64,3 +64,96 @@ jobs:
         if: steps.changes.outputs.run == 'true'
         working-directory: apps/web
         run: npm run build
+
+  # Browser tests: real web app + real API + seeded MongoDB, driven by Playwright with the runner's
+  # preinstalled Chrome. Reported as its own check ("Browser E2E"); it is not a required check yet.
+  browser-e2e:
+    name: Browser E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MONGODB_URI: mongodb://localhost:27017/studentsuccess
+      JWT_SECRET: ci-only-secret-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect relevant changes
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BASE_SHA" "$HEAD_SHA" |
+            grep -qE '^(apps/web/|apps/api/|packages/shared/|package(-lock)?\.json$|\.github/workflows/web-ci\.yml$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "No web or API changes; skipping browser tests."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.run == 'true'
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # One install from the repo root covers both apps (a per-app `npm ci` would replace the other's packages).
+      - name: Install
+        if: steps.changes.outputs.run == 'true'
+        run: npm ci
+
+      - name: Seed database
+        if: steps.changes.outputs.run == 'true'
+        working-directory: apps/api
+        run: npm run db:reset
+
+      - name: Start API and web app
+        if: steps.changes.outputs.run == 'true'
+        run: |
+          (cd apps/api && PORT=3000 node src/server.js > "$RUNNER_TEMP/api.log" 2>&1 &)
+          (cd apps/web && npx vite --host 127.0.0.1 --port 5173 > "$RUNNER_TEMP/web.log" 2>&1 &)
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/api/v1/health | grep -q '"database":"connected"' &&
+              curl -fsS -o /dev/null http://127.0.0.1:5173; then
+              echo "API and web app are up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Servers did not start"
+          tail -n 40 "$RUNNER_TEMP/api.log" "$RUNNER_TEMP/web.log"
+          exit 1
+
+      - name: Run browser tests
+        if: steps.changes.outputs.run == 'true'
+        working-directory: apps/web
+        env:
+          PLAYWRIGHT_CHANNEL: chrome
+          E2E_BASE_URL: http://127.0.0.1:5173
+          E2E_API_URL: http://localhost:3000
+        run: npm run test:e2e
+
+      - name: Upload traces and screenshots
+        if: failure() && steps.changes.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: apps/web/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

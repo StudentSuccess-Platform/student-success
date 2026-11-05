@@ -11,6 +11,7 @@ pipeline -> workflow run, merge request -> pull request, CI/CD variables -> Secr
 |---|---|---|---|
 | API CI (check name `API CI`) | `.github/workflows/api-ci.yml` | every PR to `main` | install, lint, tests (with a MongoDB service), seed and consistency check, server smoke test that requires a database connection |
 | Web CI (check name `Web CI`) | `.github/workflows/web-ci.yml` | every PR to `main` | install, lint, test, build; dormant until `apps/web/package-lock.json` exists |
+| Browser E2E (check name `Browser E2E`) | `.github/workflows/web-ci.yml` (second job) | every PR to `main` (self-filters to web, API, shared, root changes) | MongoDB service, seed, start API and web app, Playwright specs from `apps/web/tests/e2e` in Chrome; traces uploaded on failure. Not a required check yet: add it to the ruleset once it has been stable. |
 | Deploy | `.github/workflows/deploy.yml` | manual (`workflow_dispatch`) | placeholder, no-op |
 
 ### Path strategy
@@ -54,3 +55,18 @@ Deployment secrets live in GitHub Environments and are referenced only as `secre
 | Hosting target for test/demo/production | Undecided (team decision) |
 | Branch protection / required checks | Ruleset active on `main` (PR, `API CI`, `Web CI`, up to date; 0 approvals for now) |
 | Test PR demonstrating CI | Done: passed (`fb35f07`), failed on an intentional failing test (`4da3215`), passed after revert (`11d4087`) |
+| Ruleset enforcement proof | PR #18 (2026-11-01): `API CI` and `Web CI` both passed under the active "Pre merge verification" ruleset before merge to `main` |
+
+## SCRUM-13 acceptance status (checked 2026-11-01)
+| Acceptance criterion | Status | Evidence |
+|---|---|---|
+| CI runs for relevant PRs; API validation automatic | Done | `api-ci.yml`; PR #18 `API CI` passed |
+| UI validation separate from API | Done | `web-ci.yml`; PR #18 `Web CI` passed |
+| Shared/root changes trigger broader checks | Done | Path strategy above |
+| Failures visible on the PR | Done | Intentional failing test PR (`4da3215`) |
+| Required checks documented and enforced | Done | Ruleset "Pre merge verification" active on `main` |
+| Local setup and DB/seed onboarding, no prod dependency | Done | `docs/setup/local-development.md`, `AGENTS.md` |
+| Local, test/demo, final environments defined | Done | `docs/architecture/environments.md`; GitHub Environment `test` exists |
+| Secrets stay outside source control | Done | `.env` gitignored; `secrets.*` in Environments |
+| Test PR demonstrates CI | Done | `fb35f07`, `4da3215`, `11d4087`, PR #18 |
+| CD plan documented, hosting decided | Open | Deploy is a no-op; decide web host (e.g. Vercel), API/DB host, deploy trigger; create `production` Environment |
