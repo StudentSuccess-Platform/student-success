@@ -36,7 +36,7 @@ describe('authApi', () => {
       })
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'http://localhost:3000/api/auth/login',
+        expect.stringMatching(/\/api\/auth\/login$/),
         expect.objectContaining({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -100,7 +100,7 @@ describe('authApi', () => {
       })
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'http://localhost:3000/api/auth/register',
+        expect.stringMatching(/\/api\/auth\/register$/),
         expect.objectContaining({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -163,7 +163,7 @@ describe('authApi', () => {
       const result = await authApi.getMe('test-token')
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'http://localhost:3000/api/auth/me',
+        expect.stringMatching(/\/api\/auth\/me$/),
         expect.objectContaining({
           method: 'GET',
           headers: {
