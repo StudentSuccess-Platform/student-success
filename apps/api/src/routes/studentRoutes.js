@@ -1,12 +1,19 @@
 import express from "express";
-import { dashboard } from "../controllers/studentController.js";
+import {
+  dashboard,
+  getStudentAttendance,
+  getStudentGrades,
+  getStudentProfile,
+} from "../controllers/studentController.js";
 import { requireAuth, requireRole } from "../middleware/requireAuth.js";
 
 const router = express.Router();
 
-// A student only ever sees their own record: the profile comes from the token, never from the URL.
 router.use(requireAuth, requireRole("student"));
-
+router.get("/profile", getStudentProfile);
+router.get("/grades", getStudentGrades);
+router.get("/attendance", getStudentAttendance);
 router.get("/dashboard", dashboard);
+router.get("/me/dashboard", dashboard);
 
 export default router;

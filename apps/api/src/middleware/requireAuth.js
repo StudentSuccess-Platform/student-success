@@ -4,6 +4,7 @@ const httpError = (status, message) => Object.assign(new Error(message), { statu
 
 export function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
+  console.log("Authorization header:", authHeader); // Debugging line
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw httpError(401, "Unauthorized");
   }

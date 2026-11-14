@@ -13,8 +13,12 @@ import ProtectedRoute from './components/ProtectedRoute'
 import TeacherDashboard from './pages/teacher/Dashboard'
 import MyClasses from './pages/teacher/MyClasses'
 import ClassDetail from './pages/teacher/ClassDetail'
-import { teacherNavItems } from './config/navConfig'
+import { teacherNavItems, studentNavItems } from './config/navConfig'
 import avatarPlaceholder from './assets/images/avatar-placeholder.png'
+
+import StudentDashboard from './pages/student/Dashboard'
+import StudentProgress from './pages/student/Progress'
+import StudentSupportPlan from './pages/student/SupportPlan'
 
 function AuthFlow() {
   const [authView, setAuthView] = useState('login')
@@ -98,6 +102,24 @@ function TeacherPortal() {
   )
 }
 
+function StudentPortal() {
+  const { user } = useAuth()
+
+  const userDisplay = {
+    name: `${user.firstName} ${user.lastName}`,
+    subtitle: 'Student',
+    avatarUrl: avatarPlaceholder,
+  }
+
+  return (
+    <DashboardLayout
+      portalLabel="Student Portal"
+      navItems={studentNavItems}
+      user={userDisplay}
+    />
+  )
+}
+
 function AppContent() {
   return (
     <Routes>
@@ -121,13 +143,18 @@ function AppContent() {
       </Route>
 
       <Route
-        path="/student"
+        path="/student/*"
         element={
           <ProtectedRoute allowedRoles={['student']}>
-            <ComingSoon title="Student Portal" />
+            <StudentPortal />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<StudentDashboard />} />
+        <Route path="progress" element={<StudentProgress />} />
+        <Route path="support-plan" element={<StudentSupportPlan />} />
+      </Route>
 
       <Route
         path="/parent"
