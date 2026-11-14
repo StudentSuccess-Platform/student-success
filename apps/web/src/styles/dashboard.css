@@ -591,6 +591,119 @@
   height: 14px;
 }
 
+/* Class Overview */
+
+.demo-data-banner {
+  margin: 0 0 20px;
+  padding: 10px 14px;
+  border: 1px solid var(--dash-border);
+  border-radius: 10px;
+  background: var(--dash-page-bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dash-body-text);
+}
+
+.class-overview-back-link {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dash-orange);
+  text-decoration: none;
+}
+
+.class-overview-back-link:hover {
+  text-decoration: underline;
+}
+
+.assignments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assignment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--dash-border);
+  border-radius: 10px;
+}
+
+.assignment-item-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dash-heading);
+}
+
+.assignment-item-due {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--dash-body-text);
+}
+
+.assignment-badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.assignment-badge--upcoming {
+  background: var(--dash-page-bg);
+  color: var(--dash-heading);
+}
+
+.assignment-badge--in-progress {
+  background: #fff1e8;
+  color: var(--dash-orange);
+}
+
+.assignment-badge--graded {
+  background: #e8f3ec;
+  color: #1f8a4c;
+}
+
+.assignments-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--dash-body-text);
+}
+
+.class-overview-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.class-overview-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dash-heading);
+}
+
+.coming-soon-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--dash-page-bg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dash-body-text);
+}
+
 /* Responsive */
 
 @media (max-width: 980px) {
