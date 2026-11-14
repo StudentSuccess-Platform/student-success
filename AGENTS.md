@@ -18,6 +18,8 @@ when software is missing, tell the human exactly what to download and wait.
 | GitHub CLI (optional) | any | `gh --version` | https://cli.github.com |
 Windows: if Docker says access denied, add the user to the `docker-users` group, sign out and back in.
 If PowerShell blocks npm scripts: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+Windows PowerShell 5.1 does not understand `&&`. Use Git Bash (installed with Git), or run each command of a
+`cd x && y` line separately: `cd x`, then `y`. Check the shell with `$PSVersionTable.PSVersion` (7+ supports `&&`).
 
 ## 2. Get the code
 `git clone https://github.com/StudentSuccess-Platform/student-success.git` then `cd student-success`.
