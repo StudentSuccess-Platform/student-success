@@ -1,13 +1,12 @@
 import { useParams } from 'react-router-dom'
-import ComingSoon from '../../components/common/ComingSoon'
-import useTeacherClassesData from './useTeacherClassesData'
+import ClassOverviewView from './ClassOverviewView'
+import useTeacherClassOverviewData from './useTeacherClassOverviewData'
 
 function ClassDetail() {
   const { classId } = useParams()
-  const { data } = useTeacherClassesData()
-  const classItem = data?.classes.find((item) => item.id === classId)
+  const { data, isLoading, error } = useTeacherClassOverviewData(classId)
 
-  return <ComingSoon title={classItem ? classItem.name : 'Class'} />
+  return <ClassOverviewView data={data} isLoading={isLoading} error={error} />
 }
 
 export default ClassDetail
