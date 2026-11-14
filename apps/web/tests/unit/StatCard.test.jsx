@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import StatCard from '../../src/components/teacher/StatCard'
+import StatCard from '../../src/components/common/StatCard'
 
 describe('StatCard', () => {
   it('renders the label and value', () => {

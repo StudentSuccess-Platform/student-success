@@ -6,7 +6,7 @@ export const PASSWORD = 'Password123!'
 
 export const ACCOUNTS = {
   teacher: { email: 'carley.beer.2@example.test', name: 'Carley Beer', home: '/teacher/dashboard' },
-  student: { email: 'judson.greenfelder.6@example.test', name: 'Judson Greenfelder', home: '/student' },
+  student: { email: 'judson.greenfelder.6@example.test', name: 'Judson Greenfelder', home: '/student/dashboard' },
   parent: { email: 'lorena.schneider.30@example.test', name: 'Lorena Schneider', home: '/parent' },
 }
 

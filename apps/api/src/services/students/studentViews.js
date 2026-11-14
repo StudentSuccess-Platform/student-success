@@ -17,11 +17,13 @@ import { attendancePercent, gradePercent, mean, monthlyTrend } from "../grades/g
 // relationship check, for a linked parent. It only reads shared data: TeacherNote (private notes)
 // is never queried here, and a remediation plan is returned only once the teacher has published it.
 
-const fullName = (user) => `${user.firstName} ${user.lastName}`;
+const fullName = (user) => [user?.firstName, user?.lastName].filter(Boolean).join(" ");
 
 export async function getStudentDashboard(student) {
-  const user = await User.findById(student.user, "firstName lastName").lean();
-  const enrollments = await Enrollment.find({ student: student._id, status: "active" }).lean();
+  const [user, enrollments] = await Promise.all([
+    User.findById(student.user, "firstName lastName").lean(),
+    Enrollment.find({ student: student._id, status: "active" }).sort({ createdAt: -1 }).lean(),
+  ]);
   const sections = await Section.find({ _id: { $in: enrollments.map((e) => e.section) } })
     .populate("course", "title")
     .lean();
@@ -62,8 +64,6 @@ export async function getStudentDashboard(student) {
     summary: {
       currentGrade: mean(subjectGrades.map((g) => g.grade)),
       attendance: attendancePercent(attendance),
-      // No goal target is modelled yet; the UI shows its own empty state for null.
-      termGoal: null,
     },
     grades: subjectGrades,
     performanceTrend: monthlyTrend(rows),
@@ -92,13 +92,13 @@ async function loadGoals(studentId) {
 }
 
 async function loadFeedback(studentId) {
-  const feedback = await TeacherFeedback.findOne({ student: studentId })
+  const feedback = await TeacherFeedback.findOne({ student: studentId, visibility: "shared" })
     .sort({ createdAt: -1 })
     .populate({ path: "teacher", populate: { path: "user", select: "firstName lastName" } })
     .lean();
   if (!feedback) return null;
   return {
-    teacher: fullName(feedback.teacher.user),
+    teacher: fullName(feedback.teacher?.user),
     date: new Date(feedback.createdAt).toISOString(),
     message: feedback.body,
   };
@@ -109,13 +109,16 @@ async function loadFeedback(studentId) {
 async function loadPublishedPlan(studentId) {
   const plan = await RemediationPlan.findOne({ student: studentId, status: "published" })
     .sort({ publishedAt: -1 })
-    .populate({ path: "teacher", populate: { path: "user", select: "firstName lastName" } })
+    .populate({
+      path: "teacher",
+      populate: { path: "user", select: "firstName lastName" },
+    })
     .lean();
   if (!plan) return null;
   const items = await RemediationItem.find({ plan: plan._id }).sort({ createdAt: 1 }).lean();
   return {
     status: "approved",
-    teacher: fullName(plan.teacher.user),
+    teacher: fullName(plan.teacher?.user),
     focus: plan.title,
     activities: items.map((i) => ({ id: String(i._id), title: i.title, schedule: i.description ?? "" })),
   };

@@ -4,8 +4,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { getDatabaseStatus } from "./config/database.js";
 import authRoutes from "./routes/authRoutes.js";
-import teacherRoutes from "./routes/teacherRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
 import parentRoutes from "./routes/parentRoutes.js";
 
 const app = express();

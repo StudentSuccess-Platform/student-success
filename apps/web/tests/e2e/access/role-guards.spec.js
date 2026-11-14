@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { ACCOUNTS, signIn } from '../helpers/auth.js'
+import { ACCOUNTS, signIn, signOut } from '../helpers/auth.js'
 
 test.describe('route guards', () => {
   test('a signed-out visitor is sent to the login page from every portal', async ({ page }) => {
@@ -10,13 +10,20 @@ test.describe('route guards', () => {
   })
 
   test('each role lands in its own portal after signing in', async ({ page }) => {
-    await signIn(page, ACCOUNTS.student)
-    await expect(page).toHaveURL(/\/student$/)
+    const accounts = [ACCOUNTS.teacher, ACCOUNTS.student, ACCOUNTS.parent]
+    for (const [index, account] of accounts.entries()) {
+      await signIn(page, account)
+      await expect(page).toHaveURL(new RegExp(`${account.home.replaceAll('/', '\\/')}$`))
+      if (index < accounts.length - 1) {
+        await signOut(page)
+        await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+      }
+    }
   })
 
   test('a student cannot open the teacher portal', async ({ page }) => {
     await signIn(page, ACCOUNTS.student)
-    await expect(page).toHaveURL(/\/student$/)
+    await expect(page).toHaveURL(/\/student\/dashboard$/)
 
     await page.goto('/teacher/dashboard')
     await expect(page).not.toHaveURL(/\/teacher\//)
@@ -35,7 +42,7 @@ test.describe('route guards', () => {
 
   test('the API itself refuses another role\'s data, not just the UI', async ({ page, request }) => {
     await signIn(page, ACCOUNTS.student)
-    await expect(page).toHaveURL(/\/student$/)
+    await expect(page).toHaveURL(/\/student\/dashboard$/)
     const token = await page.evaluate(() => localStorage.getItem('authToken'))
 
     const api = process.env.E2E_API_URL ?? 'http://localhost:3000'

@@ -11,3 +11,9 @@ export const teacherNavItems = [
   { id: 'reports', label: 'Reports', icon: barChartIcon, path: '/teacher/reports' },
   { id: 'settings', label: 'Settings', icon: settingsIcon, path: '/teacher/settings' },
 ]
+
+export const studentNavItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: gridIcon, path: '/student/dashboard' },
+  { id: 'my-progress', label: 'My Progress', icon: bookOpenIcon, path: '/student/progress' },
+  { id: 'support-plan', label: 'Support Plan', icon: settingsIcon, path: '/student/support-plan' },
+]
