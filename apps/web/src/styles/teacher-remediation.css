@@ -1,0 +1,59 @@
+/* Remediation plans panel (SCRUM-97). Shared form, button and badge classes live in teacher-shared.css. */
+
+.remediation-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.remediation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.remediation-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--dash-border);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.remediation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.remediation-card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dash-heading);
+}
+
+.remediation-card p {
+  margin: 0;
+}
+
+.remediation-ai-note {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b34a00;
+}
+
+.remediation-rationale {
+  font-size: 14px;
+  color: var(--dash-body-text);
+}
+
+.remediation-steps {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  color: var(--dash-body-text);
+}
