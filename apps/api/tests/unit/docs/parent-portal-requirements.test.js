@@ -1,16 +1,13 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { REPO_ROOT, readDoc, assertPathsExist } from "../../helpers/docs.js";
 
-// This file lives at apps/api/tests/unit/docs/, five directories below the
-// repo root, so five ".." hops get back to the repo root.
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const repoRoot = path.resolve(__dirname, "..", "..", "..", "..", "..");
-const docPath = path.resolve(repoRoot, "docs/product/parent-portal-requirements.md");
+const docRelPath = "docs/product/parent-portal-requirements.md";
+const docPath = path.resolve(REPO_ROOT, docRelPath);
 
-const doc = existsSync(docPath) ? readFileSync(docPath, "utf8") : "";
+const doc = readDoc(docRelPath);
 
 describe("docs/product/parent-portal-requirements.md", () => {
   test("doc file exists and is non-empty", () => {
@@ -63,16 +60,11 @@ describe("docs/product/parent-portal-requirements.md", () => {
     // fail loudly if the doc's cross-references were gutted.
     assert.ok(pathLike.length > 0, "expected to find backtick-quoted repo paths in the doc");
 
-    const uniquePaths = [...new Set(pathLike)];
-    for (const rawPath of uniquePaths) {
-      const normalized = rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
-      const resolved = path.resolve(repoRoot, normalized);
-      assert.ok(existsSync(resolved), `expected path referenced in doc to exist: ${rawPath} (resolved: ${resolved})`);
-    }
+    assertPathsExist([...new Set(pathLike)]);
   });
 
   test("the doc's core factual claim (GuardianStudentLink model) is backed by real code", () => {
-    const modelsDir = path.resolve(repoRoot, "apps/api/src/models");
+    const modelsDir = path.resolve(REPO_ROOT, "apps/api/src/models");
     assert.ok(existsSync(modelsDir), `expected models directory to exist at ${modelsDir}`);
 
     const modelFiles = readdirSync(modelsDir).filter((f) => statSync(path.join(modelsDir, f)).isFile());

@@ -1,17 +1,11 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { REPO_ROOT, readDoc, backtickRepoPaths, assertPathsExist } from "../../helpers/docs.js";
 
-// This test file lives at apps/api/tests/unit/docs/system-architecture.test.js,
-// five directories below the repo root.
-const repoRoot = path.resolve(fileURLToPath(import.meta.url), "..", "..", "..", "..", "..", "..");
-const docPath = path.join(repoRoot, "docs", "architecture", "system-architecture.md");
-
-function readDoc() {
-  return readFileSync(docPath, "utf8");
-}
+const docRelPath = "docs/architecture/system-architecture.md";
+const docPath = path.join(REPO_ROOT, "docs", "architecture", "system-architecture.md");
 
 // Backtick-quoted strings that look like real repo paths, e.g. `apps/api/src/app.js`,
 // `docs/database/data-model.md`, `.github/workflows/api-ci.yml`, `README.md`.
@@ -29,13 +23,7 @@ function expandBraces(repoPath) {
 }
 
 function extractRepoPaths(doc) {
-  const paths = new Set();
-  for (const match of doc.matchAll(REPO_PATH_PATTERN)) {
-    for (const expanded of expandBraces(match[1])) {
-      paths.add(expanded);
-    }
-  }
-  return [...paths];
+  return [...new Set(backtickRepoPaths(doc, REPO_PATH_PATTERN).flatMap(expandBraces))];
 }
 
 describe("docs/architecture/system-architecture.md", () => {
@@ -46,7 +34,7 @@ describe("docs/architecture/system-architecture.md", () => {
   });
 
   test("has a top-level heading and the expected sections", () => {
-    const doc = readDoc();
+    const doc = readDoc(docRelPath);
     assert.match(doc, /^# StudentSuccess System Architecture/m);
     assert.match(doc, /^## 1\. System overview/m);
     assert.match(doc, /^## 2\. Component responsibilities/m);
@@ -60,22 +48,20 @@ describe("docs/architecture/system-architecture.md", () => {
   });
 
   test("component responsibility table marks status as Implemented or Planned", () => {
-    const doc = readDoc();
+    const doc = readDoc(docRelPath);
     assert.match(doc, /\| Component \| Responsibility \| Status \|/);
     assert.match(doc, /Implemented/);
     assert.match(doc, /Planned/);
   });
 
   test("every backtick-quoted repo path referenced in the doc exists on disk", () => {
-    const doc = readDoc();
-    const repoPaths = extractRepoPaths(doc);
+    const repoPaths = extractRepoPaths(readDoc(docRelPath));
 
     // Sanity check: the extraction itself should find a meaningful number of paths,
     // otherwise the regex has silently stopped matching anything.
     assert.ok(repoPaths.length > 5, `expected several repo paths, found ${repoPaths.length}`);
 
-    const missing = repoPaths.filter((p) => !existsSync(path.join(repoRoot, p)));
-    assert.deepEqual(missing, [], `these paths referenced in the doc do not exist: ${missing.join(", ")}`);
+    assertPathsExist(repoPaths);
   });
 
   test("spot-check: files the doc marks 'Implemented' actually exist", () => {
@@ -95,7 +81,7 @@ describe("docs/architecture/system-architecture.md", () => {
 
     for (const relPath of implementedPaths) {
       assert.ok(
-        existsSync(path.join(repoRoot, relPath)),
+        existsSync(path.join(REPO_ROOT, relPath)),
         `doc marks this as Implemented but it is missing: ${relPath}`,
       );
     }
@@ -114,7 +100,7 @@ describe("docs/architecture/system-architecture.md", () => {
     ];
 
     for (const relPath of scaffoldedPaths) {
-      assert.ok(existsSync(path.join(repoRoot, relPath)), `expected scaffolded path to exist: ${relPath}`);
+      assert.ok(existsSync(path.join(REPO_ROOT, relPath)), `expected scaffolded path to exist: ${relPath}`);
     }
   });
 });

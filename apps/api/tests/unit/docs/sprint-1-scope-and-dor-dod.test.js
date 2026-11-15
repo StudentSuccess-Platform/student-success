@@ -1,12 +1,11 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { existsSync } from "node:fs";
 import path from "node:path";
+import { REPO_ROOT, readDoc, backtickRepoPaths, assertPathsExist } from "../../helpers/docs.js";
 
-// This file lives at apps/api/tests/unit/docs/, five directories below repo root.
-const repoRoot = path.resolve(fileURLToPath(import.meta.url), "../../../../../..");
-const docPath = path.resolve(repoRoot, "docs/sdlc/sprint-1-scope-and-dor-dod.md");
+const docRelPath = "docs/sdlc/sprint-1-scope-and-dor-dod.md";
+const docPath = path.resolve(REPO_ROOT, docRelPath);
 
 // Backtick-quoted spans that look like real repo paths: either rooted under one of
 // the repo's known top-level directories, or a small set of known root-level files
@@ -20,14 +19,13 @@ const REPO_PATH_PATTERN =
 // stays dormant "until apps/web/package-lock.json is present, i.e. until the frontend
 // is scaffolded". So this is not a broken reference to fix — it's a true statement
 // about current repo state that would need revisiting once the frontend is scaffolded.
-const KNOWN_NOT_YET_PRESENT = new Set(["apps/web/package-lock.json"]);
+const KNOWN_NOT_YET_PRESENT = ["apps/web/package-lock.json"];
 
-let doc;
+const doc = readDoc(docRelPath);
 
 describe("docs/sdlc/sprint-1-scope-and-dor-dod.md", () => {
   test("doc file exists and is non-empty", () => {
     assert.ok(existsSync(docPath), `expected doc at ${docPath}`);
-    doc = readFileSync(docPath, "utf8");
     assert.ok(doc.length > 0, "doc should not be empty");
   });
 
@@ -66,32 +64,23 @@ describe("docs/sdlc/sprint-1-scope-and-dor-dod.md", () => {
   });
 
   test("extracts backtick-quoted repo paths from the doc", () => {
-    const found = new Set([...doc.matchAll(REPO_PATH_PATTERN)].map((m) => m[1]));
+    const found = backtickRepoPaths(doc, REPO_PATH_PATTERN);
     // Sanity check: this doc is known to reference at least these paths in backticks.
     // If this fails, the doc's own path references changed and the extraction/assertions
     // below need to be revisited alongside it.
-    assert.ok(found.has("apps/api"), "expected doc to reference `apps/api` in backticks");
+    assert.ok(found.includes("apps/api"), "expected doc to reference `apps/api` in backticks");
     assert.ok(
-      found.has(".github/pull_request_template.md"),
+      found.includes(".github/pull_request_template.md"),
       "expected doc to reference `.github/pull_request_template.md` in backticks",
     );
-    assert.ok(found.has(".env.example"), "expected doc to reference `.env.example` in backticks");
+    assert.ok(found.includes(".env.example"), "expected doc to reference `.env.example` in backticks");
 
-    for (const referenced of found) {
-      if (KNOWN_NOT_YET_PRESENT.has(referenced)) {
-        continue;
-      }
-      const absolute = path.resolve(repoRoot, referenced);
-      assert.ok(
-        existsSync(absolute),
-        `doc references \`${referenced}\` but it does not exist at ${absolute}`,
-      );
-    }
+    assertPathsExist(found, { allowMissing: KNOWN_NOT_YET_PRESENT });
   });
 
   test("paths documented as not-yet-present are indeed still absent", () => {
     for (const referenced of KNOWN_NOT_YET_PRESENT) {
-      const absolute = path.resolve(repoRoot, referenced);
+      const absolute = path.resolve(REPO_ROOT, referenced);
       assert.ok(
         !existsSync(absolute),
         `doc says \`${referenced}\` is not yet present, but it now exists at ${absolute} — ` +
@@ -103,8 +92,8 @@ describe("docs/sdlc/sprint-1-scope-and-dor-dod.md", () => {
   test("linked markdown references resolve to existing files", () => {
     // README.md and docs/sdlc/ci-cd.md are referenced as markdown links, not backticks,
     // but they are load-bearing cross-references for this doc, so verify them too.
-    assert.ok(existsSync(path.resolve(repoRoot, "README.md")));
-    assert.ok(existsSync(path.resolve(repoRoot, "docs/sdlc/ci-cd.md")));
-    assert.ok(existsSync(path.resolve(repoRoot, ".github/pull_request_template.md")));
+    assert.ok(existsSync(path.resolve(REPO_ROOT, "README.md")));
+    assert.ok(existsSync(path.resolve(REPO_ROOT, "docs/sdlc/ci-cd.md")));
+    assert.ok(existsSync(path.resolve(REPO_ROOT, ".github/pull_request_template.md")));
   });
 });

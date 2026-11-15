@@ -9,12 +9,14 @@ apps/<app>/tests/
   unit/<module>/<Name>.test.<js|jsx>          pure logic or a single component, no server or DB
   integration/<module>/<name>.test.js         API over HTTP, or components + routing/state together
   e2e/<module>/<name>.test.js                 full flows (web + API + DB)
-  helpers/                                    shared utilities, not tests
+  helpers/                                    shared utilities, not tests (web browser helpers: tests/e2e/helpers)
 ```
-- `<module>` is a feature area: API `auth`, `system`, `errors`, `models`, `seed`, `database`, `config`, `docs`;
-  web `auth`, `teacher`, `student`, `parent`, `common`, `utils`.
+Web browser (Playwright) specs are `*.spec.js` under `apps/web/tests/e2e/<module>/`; API and web unit and integration tests are `*.test.js`.
+- `<module>` is a feature area: API `auth`, `system`, `errors`, `models`, `seed`, `database`, `config`, `docs`, `grades`,
+  `student`, `teacher`, `ai`; web `auth`, `teacher`, `student`, `parent`, `common`, `utils`.
 - File name = what it tests: `Login.test.jsx`, `auth.test.js`. Fast critical-path API tests end in `.smoke.test.js`.
 - API reference: `apps/api/tests/README.md`. Web tests import source with `../../../src/...` from `tests/unit/<module>/`.
+- API `unit/docs` tests read Markdown under `docs/` and check referenced paths exist; they do not test code.
 - Web unit modules: `app` (App routing), `auth`, `common` (shared components, layouts), `student`, `teacher`, `utils`
   (`parent` joins when that portal lands). Pick the module of the source file under test; add a new folder only for a new feature area.
 - No loose files directly in `tests/unit/`, `tests/integration/` or `tests/e2e/`. `sh scripts/check-test-layout.sh` checks the
@@ -32,10 +34,12 @@ apps/<app>/tests/
 ## Commands
 | App | All | Level / module | Lint |
 |---|---|---|---|
-| api | `npm test` | `npm run test:unit`, `npm run test:module -- auth`, `npm run test:smoke` | `npm run lint` |
-| web | `npm run test:run` | `npx vitest run tests/unit/auth` | `npm run lint` |
+| api | `npm test` | `npm run test:unit`, `test:integration`, `test:e2e`, `test:smoke`, `test:module -- auth`, `test:coverage` | `npm run lint` |
+| web | `npm run test:run` (watch: `npm test`) | `npx vitest run tests/unit/auth`, `npm run test:coverage` | `npm run lint` |
 | web browser (Playwright) | `npm run test:e2e` | `npm run test:e2e -- tests/e2e/auth` | `npm run lint` |
-Browser tests (`apps/web/tests/e2e/<module>/*.spec.js`) need MongoDB seeded, the API and the web app running; see `apps/web/tests/e2e/README.md`.
+
+API database scripts: `cd apps/api && npm run db:seed` seeds the dev database, `npm run db:reset` wipes and reseeds it, `npm run db:check` verifies it.
+Browser tests (`apps/web/tests/e2e/<module>/*.spec.js`) need MongoDB seeded, the API and the web app running; see `apps/web/tests/e2e/README.md`. The `Browser E2E` job in `.github/workflows/web-ci.yml` runs them.
 Database tests need `MONGODB_URI` (for example `mongodb://localhost:27017`) and Docker mongo running; they skip otherwise.
 
 ## Push requirements (enforced by `.githooks/pre-push`, installed by `npm install`)
