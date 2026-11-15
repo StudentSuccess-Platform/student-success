@@ -20,8 +20,11 @@ Real values are never committed. Local: gitignored `.env`. Deployed: GitHub Envi
 ## LLM engine and acceleration
 Local and self-hosted: Ollama in Docker (`scripts/setup/ollama-up.sh`), on NVIDIA, AMD ROCm or CPU.
 Ollama handles GPU/CPU layer splitting and multi-GPU placement itself. Balancing across separate
-instances (for example a GPU host plus a CPU fallback) or failing over to a cloud provider belongs in
-the API's LLM provider abstraction (`LLM_PROVIDER`), which is not built yet.
+instances (for example a GPU host plus a CPU fallback) belongs in the API's LLM provider abstraction
+(`LLM_PROVIDER`, built). At startup the API keeps `openai` only when `OPENAI_API_KEY` and `LLM_MODEL` are set and
+OpenAI answers; otherwise, and when `LLM_PROVIDER` is unset or unknown, it uses Ollama (`LLM_BASE_URL`, default
+`http://localhost:11434`; model `OLLAMA_MODEL`, default `llama3.2`). `mock` is never changed. If Ollama is down, AI
+requests return 503 and the teacher writes the plan manually.
 
 ## Demo hosting constraints (GitHub)
 - GitHub Pages serves static files only; it cannot run the API, MongoDB or Ollama.
