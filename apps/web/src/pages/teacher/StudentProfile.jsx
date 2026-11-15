@@ -1,9 +1,14 @@
-import ComingSoon from '../../components/common/ComingSoon'
+import { useParams } from 'react-router-dom'
+import StudentProfileView from './StudentProfileView'
+import useTeacherStudentProfile from './useTeacherStudentProfile'
 
-// Workstream W1 (student profile page). Placeholder until implemented.
-// It must render <RecordsPanel /> (W2) and <RemediationPanel /> (W3); see docs/design/teacher-portal-mvp.md.
 function StudentProfile() {
-  return <ComingSoon title="Student Profile" />
+  const { studentId } = useParams()
+  const { data, isLoading, error, reload } = useTeacherStudentProfile(studentId)
+
+  return (
+    <StudentProfileView data={data} isLoading={isLoading} error={error} reload={reload} />
+  )
 }
 
 export default StudentProfile

@@ -1,8 +1,10 @@
-import ComingSoon from '../../components/common/ComingSoon'
+import StudentsView from './StudentsView'
+import useTeacherStudentsData from './useTeacherStudentsData'
 
-// Workstream W1 (students list). Placeholder until implemented.
 function Students() {
-  return <ComingSoon title="Students" />
+  const { data, isLoading, error } = useTeacherStudentsData()
+
+  return <StudentsView data={data} isLoading={isLoading} error={error} />
 }
 
 export default Students
