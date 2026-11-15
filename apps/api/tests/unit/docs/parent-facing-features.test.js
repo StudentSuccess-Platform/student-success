@@ -1,16 +1,10 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
+import { REPO_ROOT, readDoc, assertPathsExist } from "../../helpers/docs.js";
 
-// tests/unit/docs/parent-facing-features.test.js -> repo root is 5 levels up
-// (docs -> unit -> tests -> api -> apps -> <root>)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..", "..", "..", "..", "..");
-
-const docPath = path.join(repoRoot, "docs", "product", "parent-facing-features.md");
+const docPath = path.join(REPO_ROOT, "docs", "product", "parent-facing-features.md");
 
 // Backtick-quoted tokens that look like repo paths (directories/files under known
 // top-level roots, or well-known root files like README.md) as opposed to model
@@ -54,7 +48,7 @@ describe("docs/product/parent-facing-features.md", () => {
     assert.ok(stat.size > 0, "doc file is empty");
   });
 
-  const content = fs.readFileSync(docPath, "utf8");
+  const content = readDoc("docs/product/parent-facing-features.md");
 
   test("has a top-level heading", () => {
     assert.match(content, /^# .+/m);
@@ -75,14 +69,11 @@ describe("docs/product/parent-facing-features.md", () => {
   test("every backtick-quoted repo path in the doc exists on disk", () => {
     const docPaths = extractDocPaths(content);
     assert.ok(docPaths.length > 0, "expected to find at least one repo path in the doc");
-    for (const relPath of docPaths) {
-      const abs = path.join(repoRoot, relPath);
-      assert.ok(fs.existsSync(abs), `doc references "${relPath}" but it does not exist at ${abs}`);
-    }
+    assertPathsExist(docPaths);
   });
 
   test("every Mongoose model the doc names as backing a feature exists under apps/api/src/models/", () => {
-    const modelsDir = path.join(repoRoot, "apps", "api", "src", "models");
+    const modelsDir = path.join(REPO_ROOT, "apps", "api", "src", "models");
     const modelFiles = fs.readdirSync(modelsDir);
 
     for (const modelName of DOC_MODEL_NAMES) {
@@ -97,8 +88,8 @@ describe("docs/product/parent-facing-features.md", () => {
 
   test("apps/web/src/pages/parent and apps/web/src/components/parent are still UI-pending (only .gitkeep/empty)", () => {
     const parentDirs = [
-      path.join(repoRoot, "apps", "web", "src", "pages", "parent"),
-      path.join(repoRoot, "apps", "web", "src", "components", "parent"),
+      path.join(REPO_ROOT, "apps", "web", "src", "pages", "parent"),
+      path.join(REPO_ROOT, "apps", "web", "src", "components", "parent"),
     ];
 
     for (const dir of parentDirs) {

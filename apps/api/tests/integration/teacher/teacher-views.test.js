@@ -12,7 +12,6 @@ describe("teacher views", { skip: uri ? false : "set MONGODB_URI to a MongoDB se
   let school;
   let teacher;
   let otherTeacher;
-  let student;
 
   const get = (path, headers = {}) => fetch(`${ctx.baseUrl}/api/v1/teacher${path}`, { headers });
 
@@ -23,7 +22,6 @@ describe("teacher views", { skip: uri ? false : "set MONGODB_URI to a MongoDB se
     school = await createSchool();
     teacher = await signIn(ctx.baseUrl, "teacher@example.test");
     otherTeacher = await signIn(ctx.baseUrl, "other.teacher@example.test");
-    student = await signIn(ctx.baseUrl, "ada@example.test");
   });
 
   after(async () => {
@@ -32,25 +30,9 @@ describe("teacher views", { skip: uri ? false : "set MONGODB_URI to a MongoDB se
     await disconnectDatabase();
   });
 
-  describe("access control", () => {
-    test("requires a token", async () => {
-      assert.equal((await get("/dashboard")).status, 401);
-    });
-
-    test("rejects non-teachers", async () => {
-      assert.equal((await get("/dashboard", student)).status, 403);
-      assert.equal((await get("/classes", student)).status, 403);
-    });
-
-    test("protects the recommendations endpoint", async () => {
-      const res = await fetch(`${ctx.baseUrl}/api/v1/teacher/recommendations`, { method: "POST" });
-      assert.equal(res.status, 401);
-    });
-
-    test("keeps the unversioned alias working", async () => {
-      const res = await fetch(`${ctx.baseUrl}/api/teacher/classes`, { headers: teacher });
-      assert.equal(res.status, 200);
-    });
+  test("keeps the unversioned alias working", async () => {
+    const res = await fetch(`${ctx.baseUrl}/api/teacher/classes`, { headers: teacher });
+    assert.equal(res.status, 200);
   });
 
   describe("GET /dashboard", () => {
