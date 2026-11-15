@@ -16,5 +16,5 @@ Notes: the register test creates one `e2e.parent.<time>@example.test` user per r
 (`npm run db:reset` clears them). The `Browser E2E` job in `.github/workflows/web-ci.yml` runs them on every PR; locally they need a seeded database and both servers.
 Failures keep a trace and screenshot in `test-results/` (git-ignored).
 
-Known gap: the seed enrols all 24 students with both Carley (`carley.beer.2`) and Sammie (`sammie.quigley.3`), so no seeded student is outside Carley's roster. The "teacher cannot open a student not on their roster" test skips until the seed gives a student to another teacher only.
 Data rule: `student-portal.spec.js` reads Judson Greenfelder's own numbers and expects no approved support plan, so specs that write records or publish plans use Blake Rowe (login derived in `helpers/api.js`). A database that already has Judson's writes needs `npm run db:reset` before that spec passes.
+Roster tests: Carley and Sammie share the same 24 students (different classes); Cheyenne (`cheyenne.gutmann.5`) teaches one class, so the 'cannot open a student not on their roster' test uses her.

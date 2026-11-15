@@ -115,8 +115,8 @@ test.describe('teacher record entry', () => {
     const existing = recordGroup(page, 'Existing feedback')
     await existing.locator('li').filter({ hasText: original }).getByRole('button', { name: 'Edit', exact: true }).click()
     const editor = existing.locator('form')
-    await editor.getByLabel('Feedback').fill(revised)
-    await editor.getByRole('button', { name: 'Save feedback' }).click()
+    await editor.getByLabel('Edit feedback').fill(revised)
+    await editor.getByRole('button', { name: 'Save edited feedback' }).click()
     await expect(editor.getByRole('status')).toHaveText('Saved')
 
     await expect(teacherFeedback.getByText(revised)).toBeVisible()

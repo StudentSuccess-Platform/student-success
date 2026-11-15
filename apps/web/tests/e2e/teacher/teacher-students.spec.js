@@ -85,21 +85,28 @@ test.describe('teacher students list and profile', () => {
     await expect(page.getByRole('link', { name: 'Back to students' })).toBeVisible()
   })
 
-  test('a teacher cannot open a student who is not on their roster', async ({ page, request }) => {
-    const carleyToken = await loginToken(request, ACCOUNTS.teacher)
-    const sammieToken = await loginToken(request, ACCOUNTS.sammie)
-    const roster = async (token) =>
-      (await (await request.get(`${API_URL}/api/v1/teacher/students`, { headers: authHeaders(token) })).json())
-        .students
-    const carleyIds = new Set((await roster(carleyToken)).map((s) => s.id))
-    const outsider = (await roster(sammieToken)).find((s) => !carleyIds.has(s.id))
+  test('a teacher cannot open a student who is not on their roster', async ({ browser, request }) => {
+    // Carley and Sammie teach the same students, but Cheyenne teaches a single class, so some of
+    // Carley's students are not on Cheyenne's roster.
+    const roster = async (account) => {
+      const token = await loginToken(request, account)
+      const response = await request.get(`${API_URL}/api/v1/teacher/students`, { headers: authHeaders(token) })
+      return (await response.json()).students
+    }
+    const cheyenneIds = new Set((await roster(ACCOUNTS.cheyenne)).map((s) => s.id))
+    const outsider = (await roster(ACCOUNTS.teacher)).find((s) => !cheyenneIds.has(s.id))
+    expect(outsider, 'expected a student on Carley\'s roster but not Cheyenne\'s').toBeTruthy()
 
-    // The seed gives every student a class with both teachers, so no seeded student is on Sammie's
-    // roster only. Skip rather than pass vacuously (see apps/web/tests/e2e/README.md).
-    test.skip(!outsider, 'Seed has no student outside Carley\'s roster (see the e2e README).')
-
-    await page.goto(`/teacher/students/${outsider.id}`)
-    await expect(page.getByText('Student not found')).toBeVisible()
-    await expect(page.getByRole('heading', { name: outsider.name, exact: true })).toHaveCount(0)
+    const context = await browser.newContext()
+    const cheyenne = await context.newPage()
+    try {
+      await signIn(cheyenne, ACCOUNTS.cheyenne)
+      await expect(cheyenne).toHaveURL(/\/teacher\/dashboard$/)
+      await cheyenne.goto(`/teacher/students/${outsider.id}`)
+      await expect(cheyenne.getByText('Student not found')).toBeVisible()
+      await expect(cheyenne.getByRole('heading', { name: outsider.name, exact: true })).toHaveCount(0)
+    } finally {
+      await context.close()
+    }
   })
 })
