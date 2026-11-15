@@ -23,7 +23,9 @@ Last updated: 2026-11-15.
 ## Built (API: docs/api/endpoints.md)
 - Auth: /auth/register|login|me|forgot-password|reset-password; bcrypt + JWT (JWT_SECRET required).
   Public signup roles: teacher, student, parent (never admin). Seeded users: password Password123!.
-- Teacher: /teacher/dashboard|classes|classes/:id (+ /recommendations); all need role teacher.
+- Teacher: /teacher/dashboard|classes|classes/:id, /students[/:id], grades/attendance/goals/feedback entry,
+  /students/:id/remediation (+ /ai, approve|reject|publish); all need role teacher and enforce assigned-student access
+  (services/access/teacherAccess.js: 404 for unassigned students).
 - Student: /student/profile|grades|attendance|dashboard|me/dashboard (web calls /api/student/me/dashboard; keep alias).
 - Parent: /parent/children[/:id/dashboard]; linked students only (relationship check in services/access).
 - Web: login/register/forgot, role redirects (AuthContext, ProtectedRoute); teacher dashboard + My Classes use the API
@@ -44,15 +46,17 @@ Last updated: 2026-11-15.
 - Deploy workflow is a manual no-op; hosting undecided (a railway-app GitHub app is installed; unconfirmed).
 
 ## Open work (MVP1 gaps, from Deandra's 2026-11-14 UI review)
-- Teacher portal: class -> student detail; add/edit grades and attendance; add/edit goals, progress and teacher
-  feedback (the student portal waits on this); AI remediation request; edit/approve/reject AI plan; save approved plan to
-  the right student; manual fallback if AI fails; teachers only reach assigned students.
-- Student portal: support plan shows only approved plans; all read-only; own data only.
+- Teacher portal MVP is BUILT (2026-11-15, branch SCRUM-96-teacher-portal-mvp, design: docs/design/teacher-portal-mvp.md):
+  students list + profile, grade/attendance/goal/feedback entry, AI + manual remediation with edit/approve/reject/publish.
+  Remaining: class page -> student links, teacher notes UI, edit/delete of past attendance, real-provider AI check.
+- Student portal: support plan shows only published (teacher-approved) plans; all read-only; own data only.
 - Parent portal (HIGH priority): dashboard, linked children, grades, attendance, goals, feedback, approved plan,
   read-only, block unrelated students and unapproved AI content.
-- AI client bug: services/ai/recommendation.js passes the literal string "process.env.OPENAI_API_KEY";
-  needs a provider abstraction (LLM_PROVIDER, LLM_BASE_URL, LLM_MODEL).
-- Misc: teacher-to-student check on /teacher/recommendations; summary.termGoal is null; CORS_ORIGIN not enforced.
+- AI: provider abstraction done (services/ai/aiClient.js; LLM_PROVIDER openai|ollama|mock, LLM_MODEL, LLM_BASE_URL,
+  OPENAI_API_KEY, AI_TIMEOUT_MS; unset = unavailable -> manual fallback). Use LLM_PROVIDER=mock for demos/e2e/CI.
+  Still unverified against a real provider. Fields sent to the AI: docs/ai/ai-request-fields.md.
+- Misc: teacher-to-student check on legacy /teacher/recommendations; summary.termGoal is null; CORS_ORIGIN not enforced.
+- Local gotcha: if Docker Mongo times out on "localhost", use MONGODB_URI=mongodb://127.0.0.1:27017 (IPv6 forwarding).
 
 ## Decisions log
 - 2026-10: monorepo; MongoDB; JWT auth; seed data is synthetic (Faker).

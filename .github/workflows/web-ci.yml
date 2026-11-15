@@ -88,6 +88,8 @@ jobs:
     env:
       MONGODB_URI: mongodb://localhost:27017/studentsuccess
       JWT_SECRET: ci-only-secret-not-for-production
+      # Deterministic offline AI so the AI recommendation flow can be tested without a real key.
+      LLM_PROVIDER: mock
     steps:
       - uses: actions/checkout@v4
         with:
