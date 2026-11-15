@@ -25,7 +25,7 @@ Anything else is rejected (see failures). The output is advisory: a teacher revi
 |---|---|
 | `LLM_PROVIDER` | `openai`, `ollama` or `mock`. Unset or any other value means unavailable. |
 | `LLM_MODEL` | Model name. Required for `openai` and `ollama`. |
-| `LLM_BASE_URL` | Ollama server, default `http://localhost:11434`. |
+| `LLM_BASE_URL` | Ollama server, default `http://127.0.0.1:11434`. |
 | `OPENAI_API_KEY` | Required for `openai`. Read at request time, never logged or stored. |
 | `AI_TIMEOUT_MS` | Per-request timeout in milliseconds, default 15000. |
 

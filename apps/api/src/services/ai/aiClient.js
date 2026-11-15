@@ -4,7 +4,7 @@ import { AiUnavailableError, AiInvalidResponseError } from "./aiErrors.js";
 // Provider abstraction. Every provider returns the parsed model output; generateRecommendation
 // validates its shape. Env is read at call time so tests can pass their own.
 //   LLM_PROVIDER=openai  OPENAI_API_KEY + LLM_MODEL
-//   LLM_PROVIDER=ollama  LLM_BASE_URL (default http://localhost:11434) + LLM_MODEL
+//   LLM_PROVIDER=ollama  LLM_BASE_URL (default http://127.0.0.1:11434) + LLM_MODEL
 //   LLM_PROVIDER=mock    deterministic, no network (tests, CI, demo)
 //   AI_TIMEOUT_MS        per-request timeout, default 15000
 
@@ -29,15 +29,35 @@ export function timeoutMs(env) {
   return Number.isFinite(value) && value > 0 ? value : DEFAULT_TIMEOUT_MS;
 }
 
-// Accepts only { guidance, goal, nextSteps } with non-empty strings. Extra keys are dropped.
+const STEP_KEYS = ["action", "step", "description", "text", "title"];
+
+// Small local models often return a list (of strings or small objects) where a string is asked for.
+// A list of text is turned into numbered lines; anything else that is not text is rejected.
+function toText(value) {
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) {
+    const lines = value.map(toStepText).filter(Boolean);
+    if (lines.length === 0) return "";
+    return lines.length === 1 ? lines[0] : lines.map((line, i) => `${i + 1}. ${line}`).join("\n");
+  }
+  return "";
+}
+
+function toStepText(item) {
+  if (typeof item === "string") return item.trim();
+  if (item && typeof item === "object" && !Array.isArray(item)) {
+    const key = STEP_KEYS.find((k) => typeof item[k] === "string" && item[k].trim() !== "");
+    return key ? item[key].trim() : "";
+  }
+  return "";
+}
+
+// Accepts { guidance, goal, nextSteps } as non-empty text (or a list of text). Extra keys are dropped.
 export function validateRecommendation(output) {
-  const valid =
-    output !== null &&
-    typeof output === "object" &&
-    !Array.isArray(output) &&
-    KEYS.every((key) => typeof output[key] === "string" && output[key].trim() !== "");
-  if (!valid) throw new AiInvalidResponseError();
-  return Object.fromEntries(KEYS.map((key) => [key, output[key].trim()]));
+  if (output === null || typeof output !== "object" || Array.isArray(output)) throw new AiInvalidResponseError();
+  const result = Object.fromEntries(KEYS.map((key) => [key, toText(output[key])]));
+  if (KEYS.some((key) => result[key] === "")) throw new AiInvalidResponseError();
+  return result;
 }
 
 // Parses model text and checks its shape, so every provider fails the same way on bad output.
@@ -107,7 +127,7 @@ function createOpenAiClient({ env, openaiFactory }) {
 
 function createOllamaClient({ env, fetchImpl }) {
   const model = env.LLM_MODEL;
-  const baseUrl = (env.LLM_BASE_URL || "http://localhost:11434").replace(/\/+$/, "");
+  const baseUrl = (env.LLM_BASE_URL || "http://127.0.0.1:11434").replace(/\/+$/, "");
   return {
     provider: "ollama",
     model,

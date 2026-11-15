@@ -23,7 +23,7 @@ Ollama handles GPU/CPU layer splitting and multi-GPU placement itself. Balancing
 instances (for example a GPU host plus a CPU fallback) belongs in the API's LLM provider abstraction
 (`LLM_PROVIDER`, built). At startup the API keeps `openai` only when `OPENAI_API_KEY` and `LLM_MODEL` are set and
 OpenAI answers; otherwise, and when `LLM_PROVIDER` is unset or unknown, it uses Ollama (`LLM_BASE_URL`, default
-`http://localhost:11434`; model `OLLAMA_MODEL`, default `llama3.2`). `mock` is never changed. If Ollama is down, AI
+`http://127.0.0.1:11434`; model `OLLAMA_MODEL`, default `qwen2.5:0.5b`). `mock` is never changed. If Ollama is down, AI
 requests return 503 and the teacher writes the plan manually.
 
 ## Demo hosting constraints (GitHub)

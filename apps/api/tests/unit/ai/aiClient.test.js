@@ -248,6 +248,19 @@ describe("validateRecommendation", () => {
     assert.deepEqual(validateRecommendation({ ...good, guidance: " Hi ", extra: 1 }), { ...good, guidance: "Hi" });
   });
 
+  test("turns a list of steps from a small model into numbered text", () => {
+    const fromStrings = validateRecommendation({ ...good, nextSteps: [" Practice daily ", "Ask for help"] });
+    assert.equal(fromStrings.nextSteps, "1. Practice daily\n2. Ask for help");
+    const fromObjects = validateRecommendation({ ...good, nextSteps: [{ action: "Do homework", reason: "x" }] });
+    assert.equal(fromObjects.nextSteps, "Do homework");
+  });
+
+  test("rejects lists with no usable text and nested junk", () => {
+    for (const nextSteps of [[], [""], [{ reason: "no action" }], [[["deep"]]], [3], {}]) {
+      assert.throws(() => validateRecommendation({ ...good, nextSteps }), AiInvalidResponseError);
+    }
+  });
+
   test("rejects non-objects, arrays, missing and empty fields", () => {
     const bad = [null, "text", ["a"], { ...good, goal: undefined }, { ...good, nextSteps: "   " }, { ...good, guidance: 3 }];
     for (const value of bad) {
