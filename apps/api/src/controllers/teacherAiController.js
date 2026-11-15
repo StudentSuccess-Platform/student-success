@@ -1,24 +1,12 @@
 import mongoose from "mongoose";
 import { AiAuditLog, RemediationPlan, RemediationItem, Section } from "../models/index.js";
-import { getAssignedStudent, requireStudentSection } from "../services/access/teacherAccess.js";
+import { getAssignedStudent, chooseStudentSection } from "../services/access/teacherAccess.js";
 import { buildAiInput } from "../services/ai/buildAiInput.js";
 import { buildPrompt } from "../services/ai/recommendation.js";
 import { generateRecommendation, PROMPT_VERSION } from "../services/ai/aiClient.js";
 import { AiUnavailableError, AiInvalidResponseError } from "../services/ai/aiErrors.js";
 import { planFromAi } from "../services/ai/planFromAi.js";
 import { httpError } from "../utils/httpError.js";
-
-// Default class: the student's section with the lowest period (ties by id). Null periods sort last.
-async function chooseSection(access, sectionId) {
-  if (sectionId !== undefined && sectionId !== null && sectionId !== "") {
-    return requireStudentSection(access, sectionId);
-  }
-  const sections = await Section.find({ _id: { $in: access.sectionIds } }).select("period").lean();
-  const rank = (s) => s.period ?? Number.MAX_SAFE_INTEGER;
-  sections.sort((a, b) => rank(a) - rank(b) || String(a._id).localeCompare(String(b._id)));
-  if (sections.length === 0) throw httpError(404, "Student not found");
-  return sections[0]._id;
-}
 
 function planJson(plan, { studentId, className }, items) {
   return {
@@ -43,13 +31,17 @@ function planJson(plan, { studentId, className }, items) {
 // gathers the AI input itself (buildAiInput). On AI failure nothing is written.
 export async function createAiRemediationPlan(req, res) {
   const access = await getAssignedStudent(req.user.id, req.params.studentId);
-  const sectionId = await chooseSection(access, (req.body ?? {}).sectionId);
+  const sectionId = await chooseStudentSection(access, (req.body ?? {}).sectionId);
   const section = await Section.findById(sectionId).populate("course", "title").lean();
 
+  // Everything that can fail on the AI side (provider call, output mapping) runs inside the mapping,
+  // so every bad answer returns the same controlled 502/503 body. Nothing is written before this block ends.
   const aiInput = await buildAiInput(access, sectionId);
   let generated;
+  let draft;
   try {
     generated = await generateRecommendation(buildPrompt(aiInput));
+    draft = planFromAi(generated.recommendation);
   } catch (error) {
     if (error instanceof AiUnavailableError || error instanceof AiInvalidResponseError) {
       throw httpError(error.status, error.message, { code: error.code, fallback: "manual" });
@@ -57,7 +49,6 @@ export async function createAiRemediationPlan(req, res) {
     throw error;
   }
 
-  const draft = planFromAi(generated.recommendation);
   const planId = new mongoose.Types.ObjectId();
   const created = { audit: null, items: [] };
   try {

@@ -2,14 +2,19 @@ import mongoose from "mongoose";
 import { AiAuditLog, RemediationPlan, RemediationItem, Section } from "../../models/index.js";
 import { getAssignedStudent, requireStudentSection } from "../access/teacherAccess.js";
 import { httpError } from "../../utils/httpError.js";
+import { LIMITS, isTooLong, lengthMessage } from "../../validators/recordValidators.js";
 
 // Teacher remediation workflow (SCRUM-127..132, 134). Plans move draft/pending_review -> approved ->
 // published, and may be rejected before publishing. Every function resolves the student through
 // getAssignedStudent first, so a plan is only ever reached through an assigned student.
+//
+// Every status change is ONE conditional update (transitionPlan): the filter names the allowed source
+// states and the owning student, so two racing requests cannot both pass the state machine.
 
 const EDITABLE = ["draft", "pending_review"];
 const APPROVABLE = ["draft", "pending_review"];
 const REJECTABLE = ["draft", "pending_review", "approved"];
+const PUBLISHABLE = ["approved"];
 
 const iso = (value) => (value ? new Date(value).toISOString() : null);
 const isText = (value) => typeof value === "string";
@@ -64,9 +69,21 @@ async function presentPlan(plan) {
 
 // A plan must belong to the assigned student. Malformed or foreign ids are 404, never 500.
 async function findPlan(access, planId) {
-  if (!mongoose.isValidObjectId(planId)) throw httpError(404, "Plan not found");
+  if (!mongoose.isObjectIdOrHexString(planId)) throw httpError(404, "Plan not found");
   const plan = await RemediationPlan.findOne({ _id: planId, student: access.student._id });
   if (!plan) throw httpError(404, "Plan not found");
+  return plan;
+}
+
+// One conditional write. The plan must still be in an allowed source state and still belong to the
+// student; if a racing request changed it first the update matches nothing and the caller gets 409.
+async function transitionPlan(access, planId, fromStatuses, update, conflictMessage) {
+  const plan = await RemediationPlan.findOneAndUpdate(
+    { _id: planId, student: access.student._id, status: { $in: fromStatuses } },
+    update,
+    { new: true, runValidators: true },
+  );
+  if (!plan) throw httpError(409, conflictMessage);
   return plan;
 }
 
@@ -77,24 +94,29 @@ function parsePlanInput(body, { create }) {
 
   if (create || body.title !== undefined) {
     if (!isText(body.title) || !body.title.trim()) fields.title = "Required";
+    else if (isTooLong(body.title, LIMITS.title)) fields.title = lengthMessage(LIMITS.title);
     else data.title = body.title.trim();
   }
 
   if (body.rationale !== undefined && body.rationale !== null) {
-    if (isText(body.rationale)) data.rationale = body.rationale.trim();
-    else fields.rationale = "Must be text";
+    if (!isText(body.rationale)) fields.rationale = "Must be text";
+    else if (isTooLong(body.rationale, LIMITS.text)) fields.rationale = lengthMessage(LIMITS.text);
+    else data.rationale = body.rationale.trim();
   }
 
   if (body.items !== undefined) {
     if (!Array.isArray(body.items)) {
       fields.items = "Must be a list";
     } else {
+      if (body.items.length > LIMITS.items) fields.items = `Must be ${LIMITS.items} items or fewer`;
       data.items = [];
       body.items.forEach((raw, i) => {
         const item = raw && typeof raw === "object" ? raw : {};
         if (!isText(item.title) || !item.title.trim()) fields[`items.${i}.title`] = "Required";
-        if (item.description !== undefined && item.description !== null && !isText(item.description)) {
-          fields[`items.${i}.description`] = "Must be text";
+        else if (isTooLong(item.title, LIMITS.title)) fields[`items.${i}.title`] = lengthMessage(LIMITS.title);
+        if (item.description !== undefined && item.description !== null) {
+          if (!isText(item.description)) fields[`items.${i}.description`] = "Must be text";
+          else if (isTooLong(item.description, LIMITS.text)) fields[`items.${i}.description`] = lengthMessage(LIMITS.text);
         }
         data.items.push({
           title: isText(item.title) ? item.title.trim() : "",
@@ -198,55 +220,78 @@ export async function editPlan(userId, studentId, planId, input) {
   const { data, fields } = parsePlanInput(input ?? {}, { create: false });
   assertValid(fields);
 
-  if (data.items) await replaceItems(plan._id, data.items);
-  if (data.title !== undefined) plan.title = data.title;
-  if (data.rationale !== undefined) plan.rationale = data.rationale || undefined;
-  await plan.save();
+  const set = {};
+  const unset = {};
+  if (data.title !== undefined) set.title = data.title;
+  if (data.rationale !== undefined) {
+    if (data.rationale) set.rationale = data.rationale;
+    else unset.rationale = "";
+  }
+  const update = { $set: set };
+  if (Object.keys(unset).length > 0) update.$unset = unset;
 
-  await recordAuditReview(plan, access.teacher._id, new Date(), () => "edited");
-  return presentPlan(plan);
+  // Title and rationale go first, as one conditional write. If the plan was approved or rejected in
+  // the meantime, this matches nothing, returns 409, and the items below are never touched.
+  const updated = await transitionPlan(access, plan._id, EDITABLE, update, "Plan can no longer be edited");
+
+  // Known residual window: between the write above and the item replacement below, a concurrent
+  // approve/reject/publish can land, so the items of an already-reviewed plan may still be replaced.
+  // Two concurrent item replacements on the same plan can also remove each other's new rows.
+  // Closing this needs a transaction (replica set) or a version field on the plan; both are out of
+  // scope for the MVP. The status guard above keeps every status change itself consistent.
+  if (data.items) await replaceItems(plan._id, data.items);
+
+  await recordAuditReview(updated, access.teacher._id, new Date(), () => "edited");
+  return presentPlan(updated);
 }
 
 export async function approvePlan(userId, studentId, planId) {
   const access = await getAssignedStudent(userId, studentId);
   const plan = await findPlan(access, planId);
-  if (!APPROVABLE.includes(plan.status)) throw httpError(409, "Only a draft or pending plan can be approved");
 
   const reviewedAt = new Date();
-  plan.status = "approved";
-  plan.reviewedBy = access.teacher._id;
-  plan.reviewedAt = reviewedAt;
-  await plan.save();
+  const updated = await transitionPlan(
+    access,
+    plan._id,
+    APPROVABLE,
+    { $set: { status: "approved", reviewedBy: access.teacher._id, reviewedAt } },
+    "Only a draft or pending plan can be approved",
+  );
 
   // Keep "edited" when the teacher changed the AI text before approving it.
-  await recordAuditReview(plan, access.teacher._id, reviewedAt, (outcome) =>
+  await recordAuditReview(updated, access.teacher._id, reviewedAt, (outcome) =>
     outcome === "edited" ? "edited" : "approved",
   );
-  return presentPlan(plan);
+  return presentPlan(updated);
 }
 
 export async function rejectPlan(userId, studentId, planId) {
   const access = await getAssignedStudent(userId, studentId);
   const plan = await findPlan(access, planId);
-  if (!REJECTABLE.includes(plan.status)) throw httpError(409, "Plan can no longer be rejected");
 
   const reviewedAt = new Date();
-  plan.status = "rejected";
-  plan.reviewedBy = access.teacher._id;
-  plan.reviewedAt = reviewedAt;
-  await plan.save();
+  const updated = await transitionPlan(
+    access,
+    plan._id,
+    REJECTABLE,
+    { $set: { status: "rejected", reviewedBy: access.teacher._id, reviewedAt } },
+    "Plan can no longer be rejected",
+  );
 
-  await recordAuditReview(plan, access.teacher._id, reviewedAt, () => "rejected");
-  return presentPlan(plan);
+  await recordAuditReview(updated, access.teacher._id, reviewedAt, () => "rejected");
+  return presentPlan(updated);
 }
 
 export async function publishPlan(userId, studentId, planId) {
   const access = await getAssignedStudent(userId, studentId);
   const plan = await findPlan(access, planId);
-  if (plan.status !== "approved") throw httpError(409, "Approve the plan before publishing");
 
-  plan.status = "published";
-  plan.publishedAt = new Date();
-  await plan.save();
-  return presentPlan(plan);
+  const updated = await transitionPlan(
+    access,
+    plan._id,
+    PUBLISHABLE,
+    { $set: { status: "published", publishedAt: new Date() } },
+    "Approve the plan before publishing",
+  );
+  return presentPlan(updated);
 }
