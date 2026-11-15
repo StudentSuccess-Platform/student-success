@@ -60,6 +60,29 @@ test.describe('teacher record entry', () => {
     await expect(row).not.toContainText('41 /')
   })
 
+  test('the edit icon and a double-click on a grade jump to the grade form for that assignment', async ({ page }) => {
+    const gradesRows = sectionWithHeading(page, 'Grades').locator('tbody tr')
+    const grade = recordGroup(page, 'Enter a grade')
+
+    await gradesRows.first().getByRole('button', { name: /^Edit grade:/ }).click()
+    await expect(grade).toBeInViewport()
+    await expect(grade.getByLabel('Points earned')).toBeFocused()
+    await expect(grade.getByTestId('grade-points-hint')).toContainText('Out of')
+
+    const second = gradesRows.nth(1)
+    const cells = await second.locator('td').allTextContents()
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await second.dblclick()
+    await expect(grade).toBeInViewport()
+    const label = await grade.getByLabel('Assignment').locator('option:checked').textContent()
+    expect(label).toBe(`${cells[0]} - ${cells[1]}`)
+
+    // The total for the chosen assignment is enforced before anything is sent.
+    await grade.getByLabel('Points earned').fill('100000')
+    await grade.getByRole('button', { name: 'Save grade' }).click()
+    await expect(grade.getByText(/cannot be more than/)).toBeVisible()
+  })
+
   test('a recorded attendance day appears in the Attendance table', async ({ page }) => {
     const attendance = recordGroup(page, 'Record attendance')
     const day = '2026-02-17'

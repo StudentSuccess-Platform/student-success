@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import StatCard from '../../components/common/StatCard'
@@ -36,7 +37,35 @@ function formatLabel(value) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+      <path
+        d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function StudentProfileView({ data, isLoading, error, reload }) {
+  const [gradeEdit, setGradeEdit] = useState(null)
+  const editCount = useRef(0)
+
+  // Opens the grade form below for one assignment (edit icon or double-click on its row).
+  function editGrade(grade) {
+    setGradeEdit({
+      key: `${grade.assignmentId}-${++editCount.current}`,
+      assignmentId: grade.assignmentId,
+      pointsEarned: grade.pointsEarned,
+      status: grade.status,
+    })
+  }
+
   if (isLoading) {
     return <p className="dashboard-status">Loading student…</p>
   }
@@ -124,11 +153,18 @@ function StudentProfileView({ data, isLoading, error, reload }) {
                   <th scope="col">Category</th>
                   <th scope="col">Points</th>
                   <th scope="col">Status</th>
+                  <th scope="col">
+                    <span className="teacher-visually-hidden">Edit</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {grades.map((grade) => (
-                  <tr key={grade.assignmentId}>
+                  <tr
+                    key={grade.assignmentId}
+                    onDoubleClick={() => editGrade(grade)}
+                    title="Double-click to edit this grade"
+                  >
                     <td>{grade.className}</td>
                     <td>{grade.title}</td>
                     <td>{grade.category}</td>
@@ -138,6 +174,16 @@ function StudentProfileView({ data, isLoading, error, reload }) {
                         : `${grade.pointsEarned} / ${grade.pointsPossible}`}
                     </td>
                     <td>{formatLabel(grade.status)}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="teacher-icon-button"
+                        aria-label={`Edit grade: ${grade.className} ${grade.title}`}
+                        onClick={() => editGrade(grade)}
+                      >
+                        <PencilIcon />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -247,7 +293,7 @@ function StudentProfileView({ data, isLoading, error, reload }) {
         <RemediationPanel studentId={student.id} classes={classes} />
       </section>
 
-      <RecordsPanel student={data} onSaved={reload} />
+      <RecordsPanel student={data} onSaved={reload} gradeEdit={gradeEdit} />
     </div>
   )
 }

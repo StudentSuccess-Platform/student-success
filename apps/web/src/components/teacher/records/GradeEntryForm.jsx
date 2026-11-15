@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { saveGrade } from '../../../services/teacherRecordsApi'
 import RecordField from './RecordField'
 import RecordFormFooter from './RecordFormFooter'
@@ -13,7 +13,7 @@ const STATUSES = [
   { value: 'excused', label: 'Excused' },
 ]
 
-function validate(values) {
+function validate(values, pointsPossible) {
   const needsPoints = values.status === 'graded' || values.status === 'late'
   const errors = requiredErrors(values, {
     assignmentId: 'Assignment',
@@ -21,6 +21,12 @@ function validate(values) {
   })
   if (!errors.pointsEarned && !isBlank(values.pointsEarned) && Number.isNaN(Number(values.pointsEarned))) {
     errors.pointsEarned = 'Points earned must be a number'
+  } else if (!errors.pointsEarned && !isBlank(values.pointsEarned)) {
+    const points = Number(values.pointsEarned)
+    if (points < 0) errors.pointsEarned = 'Points earned cannot be negative'
+    else if (pointsPossible != null && points > pointsPossible) {
+      errors.pointsEarned = `Points earned cannot be more than ${pointsPossible} for this assignment`
+    }
   }
   return errors
 }
@@ -31,8 +37,28 @@ function toPayload(values) {
   return payload
 }
 
-function GradeEntryForm({ studentId, grades, onSaved }) {
-  const [values, setValues] = useState(EMPTY)
+// `edit` ({ assignmentId, pointsEarned, status }) preloads the form when the teacher chooses a grade
+// to change. The parent gives the form a new key for each request, so the values start from `edit`
+// and the form scrolls into view with the points field focused.
+function GradeEntryForm({ studentId, grades, onSaved, edit = null }) {
+  const [values, setValues] = useState(() =>
+    edit
+      ? {
+          assignmentId: edit.assignmentId,
+          pointsEarned: edit.pointsEarned ?? '',
+          status: STATUSES.some((s) => s.value === edit.status) ? edit.status : 'graded',
+        }
+      : EMPTY,
+  )
+  const groupRef = useRef(null)
+  const pointsRef = useRef(null)
+  useEffect(() => {
+    if (!edit) return
+    groupRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+    pointsRef.current?.focus({ preventScroll: true })
+  }, [edit])
+  const selected = grades.find((grade) => grade.assignmentId === values.assignmentId)
+  const pointsPossible = selected?.pointsPossible ?? null
   const { saving, saved, formError, fieldErrors, submit } = useRecordSubmit(onSaved)
 
   function update(field, value) {
@@ -41,7 +67,7 @@ function GradeEntryForm({ studentId, grades, onSaved }) {
 
   function handleSubmit(event) {
     event.preventDefault()
-    const errors = validate(values)
+    const errors = validate(values, pointsPossible)
     submit({
       errors,
       send: () => saveGrade(studentId, toPayload(values)),
@@ -50,7 +76,7 @@ function GradeEntryForm({ studentId, grades, onSaved }) {
   }
 
   return (
-    <div className="teacher-records-group" role="group" aria-labelledby="records-grade-title">
+    <div ref={groupRef} className="teacher-records-group" role="group" aria-labelledby="records-grade-title">
       <h3 id="records-grade-title" className="teacher-records-group-title">
         Enter a grade
       </h3>
@@ -75,13 +101,20 @@ function GradeEntryForm({ studentId, grades, onSaved }) {
           <RecordField id="grade-points" label="Points earned" error={fieldErrors.pointsEarned}>
             <input
               {...fieldProps('grade-points', fieldErrors.pointsEarned)}
+              ref={pointsRef}
               type="number"
               min="0"
+              max={pointsPossible ?? undefined}
               step="any"
               value={values.pointsEarned}
               onChange={(event) => update('pointsEarned', event.target.value)}
             />
           </RecordField>
+          {pointsPossible != null && (
+            <p className="teacher-muted" data-testid="grade-points-hint">
+              Out of {pointsPossible} points for this assignment.
+            </p>
+          )}
           <RecordField id="grade-status" label="Status" error={fieldErrors.status}>
             <select
               {...fieldProps('grade-status', fieldErrors.status)}

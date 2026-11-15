@@ -168,6 +168,21 @@ describe('Student profile page', () => {
     expect(screen.getByText('Average grade below 75%')).toBeInTheDocument()
   })
 
+  it('the edit icon and a double-click on a grade row ask the records form to load that assignment', async () => {
+    getStudentProfile.mockResolvedValue(profile)
+    const user = userEvent.setup()
+    renderProfile()
+
+    await user.click(await screen.findByRole('button', { name: 'Edit grade: Algebra I Quiz 1' }))
+    let edit = recordsPanelSpy.mock.lastCall[0].gradeEdit
+    expect(edit).toMatchObject({ assignmentId: 'a1', pointsEarned: 8, status: 'graded' })
+
+    const row = screen.getByRole('cell', { name: 'Homework 3' }).closest('tr')
+    await user.dblClick(row)
+    edit = recordsPanelSpy.mock.lastCall[0].gradeEdit
+    expect(edit).toMatchObject({ assignmentId: 'a2', pointsEarned: null })
+  })
+
   it('renders every section heading', async () => {
     getStudentProfile.mockResolvedValue(profile)
 

@@ -64,6 +64,36 @@
   display: none;
 }
 
+.teacher-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  color: var(--dash-heading);
+  cursor: pointer;
+}
+
+.teacher-icon-button:hover,
+.teacher-icon-button:focus-visible {
+  background: #fff1e6;
+  border-color: #f26b21;
+  color: #f26b21;
+}
+
+.teacher-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .teacher-muted {
   font-size: 14px;
   color: var(--dash-body-text);
