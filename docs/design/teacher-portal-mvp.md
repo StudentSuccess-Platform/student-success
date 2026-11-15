@@ -21,6 +21,30 @@ Deandra and Novoa; this design only adds teacher features and the backend they n
    `{ error, ...extra }`. Express 5 forwards async errors; no try/catch needed in handlers.
 8. Validation failures are 400 with `fields`: `{ "error": "Please fix the highlighted fields", "fields": { "pointsEarned": "Required" } }`.
 
+## Verified facts and shared pieces already in place (read before coding)
+- Already done by the architect, do not redo: `services/access/teacherAccess.js`, `utils/httpError.js` (+ handler passes `extra`),
+  web `services/http.js` now throws `ApiError` (`message`, `status`, `fields`, `code`, `fallback`), `hooks/useApiResource.js` returns
+  `{ data, isLoading, error, reload }` (parameterized fetchers must be stable: wrap in `useCallback`), shared stylesheet
+  `styles/teacher-shared.css` (classes `teacher-section`, `teacher-section-title`, `teacher-table`, `teacher-form`, `teacher-field`,
+  `teacher-field-error`, `teacher-form-error`, `teacher-form-success`, `teacher-form-actions`, `teacher-button[--primary|--danger]`,
+  `teacher-badge[--warning|--success|--danger]`, `teacher-muted`, `teacher-link`) already loaded by `DashboardLayout`. Reuse these;
+  put only page-specific rules in your own css file and import it from your component. Use `PageHeader` for page titles and
+  `DashboardCard` / `PerformanceTrendChart` / `StatCard` from `components/common` where they fit.
+- IDs: `:studentId` is a **StudentProfile** id everywhere (Goal.student, TeacherFeedback.student, RemediationPlan.student, AiAuditLog.student).
+  `RemediationPlan.teacher/reviewedBy` and `AiAuditLog.reviewedBy` are **TeacherProfile** ids (`access.teacher._id`);
+  `AiAuditLog.requestedBy` and `GoalUpdate.author` are **User** ids (`req.user.id`).
+- Mongoose errors (ValidationError, CastError, duplicate key E11000) carry no `.status` and would become 500. Validate first and throw
+  `httpError(400, ..., { fields })`; use `findOneAndUpdate(..., { upsert: true, new: true, runValidators: true })` for Grade
+  (unique assignment+student) and Attendance (unique section+student+date).
+- Class/section display name is `section.course.title` (populate `course`). A section's term/period/room are on Section.
+- Goal has no progress/updates fields: `progress` = latest `GoalUpdate.progressPercent` (default 0); `updates` = `GoalUpdate.find({ goal }).sort({ createdAt: 1 })`
+  (never return `author`). RemediationPlan has no items field: items are `RemediationItem` rows (`find({ plan }).sort({ createdAt: 1 })`;
+  replacing items = `deleteMany({ plan })` then `insertMany`). Map model `aiAudit` -> `aiAuditId`, Grade `assignment` -> `assignmentId`, TeacherFeedback `section` -> `sectionId`.
+- Attendance dates are stored at noon UTC (`new Date(\`${date}T12:00:00.000Z\`)`, same as the seed and fixtures) so one calendar day maps to one row.
+- `interventionFor` returns `{ reason, severity } | null`: `needsIntervention = flag !== null`, `summary.reason = flag?.reason ?? null`.
+- Seeded data uses term `2025-Fall`, REF_DATE 2025-11-14; each seeded teacher has 1-2 sections of about 16 students.
+- Tests that need a rejected plan or other states: create them in your own `tests/helpers/<feature>Fixtures.js` (the shared `addPlan` cannot make `rejected`).
+
 ## Workstreams and file ownership
 | Id | Owner files | Jira |
 |---|---|---|
@@ -28,7 +52,7 @@ Deandra and Novoa; this design only adds teacher features and the backend they n
 | B2 | `routes/teacher/records.js`, `controllers/teacherRecordsController.js`, `services/teachers/recordEntry.js`, `validators/recordValidators.js`, tests `integration/teacher/records.test.js`, `unit/teacher/recordValidators.test.js` | SCRUM-96 |
 | B3 | `routes/teacher/remediation.js`, `controllers/teacherRemediationController.js`, `services/remediation/remediationWorkflow.js`, `models/RemediationPlan.js` (add `rejected`), tests `integration/teacher/remediation.test.js`, `unit/models/*` update | SCRUM-127..132, 134 |
 | B4 | `routes/teacher/aiRemediation.js`, `controllers/teacherAiController.js`, `services/ai/*` (rewrite `recommendation.js`, add `aiClient.js`, `aiErrors.js`, `buildAiInput.js`, `planFromAi.js`), `docs/ai/ai-request-fields.md`, tests `unit/ai/*`, `integration/teacher/ai-remediation.test.js` | SCRUM-123, 126, 135..138, 140 |
-| W1 | `pages/teacher/Students*.jsx`, `StudentProfile*.jsx`, `useTeacherStudentsData.js`, `useTeacherStudentProfile.js`, `services/teacherStudentsApi.js`, `hooks/useApiResource.js` (add `reload`), `styles/teacher-students.css`, unit tests in `tests/unit/teacher/` | SCRUM-95 |
+| W1 | `pages/teacher/Students*.jsx`, `StudentProfile*.jsx`, `useTeacherStudentsData.js`, `useTeacherStudentProfile.js`, `services/teacherStudentsApi.js`, `styles/teacher-students.css`, unit tests in `tests/unit/teacher/` (`useApiResource` is already done: do not edit it) | SCRUM-95 |
 | W2 | `components/teacher/records/*`, `services/teacherRecordsApi.js`, `styles/teacher-records.css`, unit tests `tests/unit/teacher/` | SCRUM-96 |
 | W3 | `components/teacher/remediation/*`, `services/teacherRemediationApi.js`, `styles/teacher-remediation.css`, unit tests `tests/unit/teacher/` | SCRUM-97, 128..132, 139 |
 Placeholders already exist for the shared seams: the routers, `Students.jsx`, `StudentProfile.jsx`, `RecordsPanel.jsx`,
@@ -62,7 +86,8 @@ Placeholders already exist for the shared seams: the routers, `Students.jsx`, `S
 - `POST /students/:studentId/remediation` `{ sectionId, title, rationale?, items?: [{ title, description? }] }` -> 201 `{ plan }` status `draft`, source `teacher` (manual entry).
 - `PUT .../remediation/:planId` `{ title?, rationale?, items? }` only while `draft` or `pending_review` (else 409 "Plan can no longer be edited"); `items` replaces all items; for an AI plan set its AiAuditLog `reviewOutcome: "edited"` -> 200 `{ plan }`.
 - `POST .../:planId/approve` from draft|pending_review -> `approved`, sets `reviewedBy` (teacher profile) and `reviewedAt`; AI audit `approved` (or keep `edited`) -> 200 `{ plan }`; else 409.
-- `POST .../:planId/reject` `{ reason? }` from draft|pending_review|approved -> `rejected` (add to `PLAN_STATUSES`, requires reviewedBy/reviewedAt like approved); audit `rejected` -> 200; else 409. Rejected is never visible to students/parents.
+- `POST .../:planId/reject` `{ reason? }` from draft|pending_review|approved -> `rejected` -> 200; else 409. Add `rejected` to `PLAN_STATUSES` AND to the `pre("validate")` status list in `models/RemediationPlan.js` (so it requires reviewedBy/reviewedAt like approved), update `tests/unit/models/visibility-and-review.test.js`; set audit `rejected`. Rejected is never visible to students/parents.
+- `reviewedBy` = `access.teacher._id`. `reason` is accepted but not stored (no field yet).
 - `POST .../:planId/publish` only from `approved` -> `published` with `publishedAt` -> 200; else 409 "Approve the plan before publishing".
 - A plan must belong to the assigned student, otherwise 404. Students/parents already see only `published` (`services/students/studentViews.js`): add integration tests proving draft, pending_review, approved and rejected plans never appear in `/student/dashboard` or `/parent/children/:id/dashboard`.
 ### B4 AI generation (AC-09; SCRUM-58 fallback)
@@ -72,7 +97,8 @@ Placeholders already exist for the shared seams: the routers, `Students.jsx`, `S
   AI output `{ guidance, goal, nextSteps }` maps to plan `rationale = guidance`, `title = goal`, items = nextSteps split into one item per line/number/bullet (`planFromAi.js`, 2..4 items max 6, strip numbering).
 - Failures never change existing data and return a controlled body `{ error, code, fallback: "manual" }`:
   timeout/network/not configured/5xx -> 503 `AI_UNAVAILABLE` ("The AI service is unavailable. You can create a plan manually."); malformed or schema-invalid output -> 502 `AI_INVALID_RESPONSE`.
-- Provider abstraction (`aiClient.js`): `LLM_PROVIDER` = `openai` (uses `OPENAI_API_KEY`, `LLM_MODEL` required) | `mock` (deterministic, no network, for tests/CI/demo) | unset -> unavailable.
+- Provider abstraction (`aiClient.js`): `LLM_PROVIDER` = `openai` (uses `OPENAI_API_KEY`, `LLM_MODEL` required) | `ollama` (POST `${LLM_BASE_URL}/api/chat` with `format: "json"`, `stream: false`, `LLM_MODEL` required; unit-test it with a fake `fetch`) | `mock` (deterministic, no network, returns provider "mock" and model "mock-1" for the AiAuditLog, for tests/CI/demo) | unset or missing config -> unavailable.
+  Default section when `sectionId` is omitted: the student's section with the lowest `period` among `access.sectionIds`.
   `AI_TIMEOUT_MS` default 15000 enforced with `AbortSignal.timeout`. Fix the old bug (`apiKey` was the literal string "process.env.OPENAI_API_KEY"). Tests inject a fake generator via `setAiGenerator(fn)` (exported from `services/ai/aiClient.js`); never call the network in tests.
 - Keep `POST /teacher/recommendations` working through the same hardened service.
 - Document exactly which fields are sent to the AI in `docs/ai/ai-request-fields.md` (SCRUM-126).

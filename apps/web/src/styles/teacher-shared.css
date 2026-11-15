@@ -1,0 +1,163 @@
+/* Shared building blocks for the teacher portal screens (students, records, remediation).
+   Imported once by layouts/DashboardLayout.jsx. Colour tokens (--dash-*) come from dashboard.css.
+   Reuse these classes instead of inventing new ones; add page-specific rules in your own css file. */
+
+.teacher-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.teacher-section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dash-heading);
+}
+
+.teacher-muted {
+  font-size: 14px;
+  color: var(--dash-body-text);
+}
+
+/* Data table */
+.teacher-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: var(--dash-body-text);
+}
+
+.teacher-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--dash-heading);
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.teacher-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+/* Forms */
+.teacher-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.teacher-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.teacher-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dash-heading);
+}
+
+.teacher-field input,
+.teacher-field select,
+.teacher-field textarea {
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--dash-heading);
+  background: #fff;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+}
+
+.teacher-field input[aria-invalid='true'],
+.teacher-field select[aria-invalid='true'],
+.teacher-field textarea[aria-invalid='true'] {
+  border-color: #c0392b;
+}
+
+.teacher-field-error,
+.teacher-form-error {
+  margin: 0;
+  font-size: 13px;
+  color: #c0392b;
+}
+
+.teacher-form-success {
+  margin: 0;
+  font-size: 13px;
+  color: #1f8a4c;
+}
+
+.teacher-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Buttons */
+.teacher-button {
+  padding: 8px 16px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--dash-heading);
+  background: #fff;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.teacher-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.teacher-button--primary {
+  color: #fff;
+  background: var(--dash-orange);
+  border-color: var(--dash-orange);
+}
+
+.teacher-button--danger {
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+/* Status badges */
+.teacher-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  color: var(--dash-heading);
+  background: #eef1f5;
+}
+
+.teacher-badge--warning {
+  color: #b34a00;
+  background: #fff1e8;
+}
+
+.teacher-badge--success {
+  color: #1f8a4c;
+  background: #e8f3ec;
+}
+
+.teacher-badge--danger {
+  color: #c0392b;
+  background: #fdecea;
+}
+
+.teacher-link {
+  color: var(--dash-orange);
+  font-weight: 600;
+  text-decoration: none;
+}
