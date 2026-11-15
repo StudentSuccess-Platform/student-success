@@ -74,7 +74,9 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error(err);
 
+  // `extra` (see utils/httpError.js) carries machine-readable details such as { fields } or { code }.
   res.status(err.status || 500).json({
+    ...(err.extra ?? {}),
     error: err.message || "Internal server error"
   });
 });
