@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   createAiClient,
   generateRecommendation,
+  RECOMMENDATION_SCHEMA,
   setAiGenerator,
   validateRecommendation,
 } from "../../../src/services/ai/aiClient.js";
@@ -124,7 +125,7 @@ describe("createAiClient", () => {
     await rejectsWith(client.generate(prompt), AiUnavailableError);
   });
 
-  test("ollama posts to /api/chat with json format and no streaming", async () => {
+  test("ollama posts to /api/chat with the JSON schema as its format and no streaming", async () => {
     const fetchImpl = fakeFetch(200, { message: { role: "assistant", content: JSON.stringify(good) } });
     const client = createAiClient({ env: ollamaEnv, fetchImpl });
     assert.deepEqual(await client.generate(prompt), good);
@@ -134,7 +135,7 @@ describe("createAiClient", () => {
     assert.equal(init.method, "POST");
     const body = JSON.parse(init.body);
     assert.equal(body.model, "llama-test");
-    assert.equal(body.format, "json");
+    assert.deepEqual(body.format, RECOMMENDATION_SCHEMA);
     assert.equal(body.stream, false);
     assert.deepEqual(body.messages, [
       { role: "system", content: "Be brief." },

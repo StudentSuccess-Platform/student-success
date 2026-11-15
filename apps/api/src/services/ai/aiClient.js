@@ -141,7 +141,7 @@ function createOllamaClient({ env, fetchImpl }) {
           body: JSON.stringify({
             model,
             stream: false,
-            format: "json",
+            format: RECOMMENDATION_SCHEMA, // Ollama accepts a JSON schema here, which keeps small models on shape
             messages: [
               { role: "system", content: instructions },
               { role: "user", content: input },
