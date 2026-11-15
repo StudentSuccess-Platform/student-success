@@ -1,7 +1,7 @@
 # Browser (end-to-end) tests
 
 Playwright drives a real browser against the real web app, API and database.
-Layout follows `docs/sdlc/testing-guidelines.md`: `tests/e2e/<module>/<name>.spec.js`, shared helpers in `tests/e2e/helpers/` (`auth.js`: seeded account logins, `signIn`, `signOut`).
+Layout follows `docs/sdlc/testing-guidelines.md`: `tests/e2e/<module>/<name>.spec.js`, shared helpers in `tests/e2e/helpers/` (`auth.js`: seeded account logins, `signIn`, `signOut`; `api.js`: API login and unique titles; `teacher.js`: teacher UI navigation).
 Modules: `auth`, `teacher`, `student`, `access`. Unit tests (Vitest) live in `tests/unit/` and never run these files.
 
 ## Run
@@ -15,3 +15,6 @@ The browser is your installed Edge. Use Chrome with `PLAYWRIGHT_CHANNEL=chrome`,
 Notes: the register test creates one `e2e.parent.<time>@example.test` user per run in the dev database
 (`npm run db:reset` clears them). The `Browser E2E` job in `.github/workflows/web-ci.yml` runs them on every PR; locally they need a seeded database and both servers.
 Failures keep a trace and screenshot in `test-results/` (git-ignored).
+
+Known gap: the seed enrols all 24 students with both Carley (`carley.beer.2`) and Sammie (`sammie.quigley.3`), so no seeded student is outside Carley's roster. The "teacher cannot open a student not on their roster" test skips until the seed gives a student to another teacher only.
+Data rule: `student-portal.spec.js` reads Judson Greenfelder's own numbers and expects no approved support plan, so specs that write records or publish plans use Blake Rowe (login derived in `helpers/api.js`). A database that already has Judson's writes needs `npm run db:reset` before that spec passes.
