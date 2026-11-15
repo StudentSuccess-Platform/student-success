@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { ACCOUNTS, signIn } from '../helpers/auth.js'
 import { BLAKE, seededStudentAccount, uniqueText } from '../helpers/api.js'
-import { openStudentProfile } from '../helpers/teacher.js'
+import { openProfileTab, openStudentProfile } from '../helpers/teacher.js'
 
 const cards = (page) => page.locator('article.remediation-card')
 const cardWithTitle = (page, title) =>
@@ -39,6 +39,7 @@ test.describe('teacher remediation plans', () => {
     await signIn(page, ACCOUNTS.teacher)
     await expect(page).toHaveURL(/\/teacher\/dashboard$/)
     await openStudentProfile(page, BLAKE.name)
+    await openProfileTab(page, 'Support Plans')
     await expect(page.getByRole('button', { name: 'Generate AI recommendation' })).toBeVisible()
   })
 

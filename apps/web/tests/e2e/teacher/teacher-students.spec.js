@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test'
 import { ACCOUNTS, signIn } from '../helpers/auth.js'
 import { API_URL, authHeaders, loginToken } from '../helpers/api.js'
-import { openStudentProfile, sectionWithHeading } from '../helpers/teacher.js'
+import { openProfileTab, openStudentProfile, sectionWithHeading } from '../helpers/teacher.js'
 
 const JUDSON = 'Judson Greenfelder'
-const PROFILE_SECTIONS = [
-  'Grades',
-  'Attendance',
-  'Goals and Progress',
-  'Teacher Feedback',
-  'Performance Trend',
-  'Remediation Plans',
-]
+// Each profile tab and the section headings it shows.
+const PROFILE_TABS = {
+  Overview: ['Performance Trend', 'At a glance'],
+  Grades: ['Grades'],
+  Attendance: ['Attendance'],
+  'Goals & Feedback': ['Goals and Progress', 'Teacher Feedback'],
+  'Support Plans': ['Remediation Plans'],
+}
 
 test.describe('teacher students list and profile', () => {
   test.beforeEach(async ({ page }) => {
@@ -65,18 +65,37 @@ test.describe('teacher students list and profile', () => {
     await expect(page.getByRole('link', { name: JUDSON, exact: true })).toBeVisible()
   })
 
-  test('opening a student shows every profile section and at least one grade', async ({ page }) => {
+  test('opening a student shows the Overview tab, and every tab shows its sections', async ({ page }) => {
     await openStudentProfile(page, JUDSON)
     await expect(page).toHaveURL(/\/teacher\/students\/[0-9a-f]{24}$/)
+    await expect(page.getByRole('tab', { name: 'Overview', exact: true })).toHaveAttribute('aria-selected', 'true')
 
-    for (const heading of PROFILE_SECTIONS) {
-      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
+    for (const [tab, headings] of Object.entries(PROFILE_TABS)) {
+      await openProfileTab(page, tab)
+      for (const heading of headings) {
+        await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
+      }
     }
-    await expect(page.getByRole('heading', { name: 'Enter Academic Records', exact: true })).toBeVisible()
 
+    await openProfileTab(page, 'Grades')
     const grades = sectionWithHeading(page, 'Grades')
     await expect(grades.getByRole('row')).not.toHaveCount(1) // more than the header row
     await expect(grades.locator('tbody tr').first()).toBeVisible()
+  })
+
+  test('the open tab is kept in the URL, survives a reload and works with the keyboard', async ({ page }) => {
+    await openStudentProfile(page, JUDSON)
+    await openProfileTab(page, 'Attendance')
+    await expect(page).toHaveURL(/\?tab=attendance$/)
+
+    await page.reload()
+    await expect(page.getByRole('tab', { name: 'Attendance', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('heading', { name: 'Attendance', exact: true })).toBeVisible()
+
+    await page.getByRole('tab', { name: 'Attendance', exact: true }).focus()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByRole('tab', { name: 'Goals & Feedback', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(page).toHaveURL(/\?tab=goals$/)
   })
 
   test('an unknown student id shows "Student not found" with a link back', async ({ page }) => {

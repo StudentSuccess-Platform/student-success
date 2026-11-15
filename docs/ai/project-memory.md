@@ -47,7 +47,8 @@ Last updated: 2026-11-15.
 
 ## Open work (MVP1 gaps, from Deandra's 2026-11-14 UI review)
 - Teacher portal MVP is BUILT (2026-11-15, branch SCRUM-96-teacher-portal-mvp, design: docs/design/teacher-portal-mvp.md):
-  students list + profile, grade/attendance/goal/feedback entry, AI + manual remediation with edit/approve/reject/publish.
+  students list + tabbed profile (Overview, Grades, Attendance, Goals & Feedback, Support Plans; ?tab= in the URL),
+  grade/attendance/goal/feedback entry, AI + manual remediation with edit/approve/reject/publish.
   Remaining: class page -> student links, teacher notes UI, edit/delete of past attendance, real-provider AI check.
 - Student portal: support plan shows only published (teacher-approved) plans; all read-only; own data only.
 - Parent portal (HIGH priority): dashboard, linked children, grades, attendance, goals, feedback, approved plan,

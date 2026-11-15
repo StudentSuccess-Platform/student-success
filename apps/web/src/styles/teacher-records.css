@@ -1,4 +1,4 @@
-/* Record entry forms (RecordsPanel). Shared form and button classes live in teacher-shared.css. */
+/* Record entry forms (used inside the profile tabs). Shared form and button classes live in teacher-shared.css. */
 
 .teacher-records-group {
   display: flex;

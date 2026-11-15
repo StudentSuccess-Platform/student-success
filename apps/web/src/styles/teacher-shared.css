@@ -20,50 +20,6 @@
   color: var(--dash-heading);
 }
 
-.teacher-collapse-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0;
-  background: none;
-  border: 0;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.teacher-collapse-toggle:focus-visible {
-  outline: 2px solid var(--dash-heading);
-  outline-offset: 4px;
-  border-radius: 4px;
-}
-
-.teacher-collapse-chevron {
-  width: 8px;
-  height: 8px;
-  margin-right: 4px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg);
-  transition: transform 0.15s ease;
-}
-
-.teacher-collapse-chevron[data-open='true'] {
-  transform: rotate(-135deg);
-}
-
-.teacher-collapse-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.teacher-collapse-body[hidden] {
-  display: none;
-}
-
 .teacher-icon-button {
   display: inline-flex;
   align-items: center;
@@ -234,4 +190,72 @@
   color: var(--dash-orange);
   font-weight: 600;
   text-decoration: none;
+}
+
+/* Student profile tabs */
+.profile-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.profile-tab {
+  flex: none;
+  padding: 10px 16px;
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  font: inherit;
+  font-weight: 600;
+  color: var(--dash-muted, #5b6b85);
+  cursor: pointer;
+}
+
+.profile-tab:hover {
+  color: var(--dash-heading);
+}
+
+.profile-tab[aria-selected='true'] {
+  color: #f26b21;
+  border-bottom-color: #f26b21;
+}
+
+.profile-tab:focus-visible {
+  outline: 2px solid #f26b21;
+  outline-offset: -2px;
+}
+
+.profile-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-glance {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-glance li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.profile-glance-link {
+  min-width: 140px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  color: #f26b21;
+  text-align: left;
+  cursor: pointer;
 }

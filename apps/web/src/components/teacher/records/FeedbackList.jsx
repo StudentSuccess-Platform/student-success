@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatDay } from '../profile/format'
 import FeedbackEditor from './FeedbackEditor'
 
 // Existing shared feedback for the student. Each item opens an inline editor on "Edit".
@@ -17,6 +18,7 @@ function FeedbackList({ studentId, feedback, onSaved }) {
           {feedback.map((item) => (
             <li key={item.id} className="teacher-records-feedback-item">
               <p className="teacher-records-feedback-meta">{item.className}</p>
+              {item.createdAt && <p className="teacher-muted">{formatDay(item.createdAt)}</p>}
               {editingId === item.id ? (
                 <FeedbackEditor
                   studentId={studentId}

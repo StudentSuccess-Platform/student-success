@@ -55,7 +55,7 @@ Deandra and Novoa; this design only adds teacher features and the backend they n
 | W1 | `pages/teacher/Students*.jsx`, `StudentProfile*.jsx`, `useTeacherStudentsData.js`, `useTeacherStudentProfile.js`, `services/teacherStudentsApi.js`, `styles/teacher-students.css`, unit tests in `tests/unit/teacher/` (`useApiResource` is already done: do not edit it) | SCRUM-95 |
 | W2 | `components/teacher/records/*`, `services/teacherRecordsApi.js`, `styles/teacher-records.css`, unit tests `tests/unit/teacher/` | SCRUM-96 |
 | W3 | `components/teacher/remediation/*`, `services/teacherRemediationApi.js`, `styles/teacher-remediation.css`, unit tests `tests/unit/teacher/` | SCRUM-97, 128..132, 139 |
-Placeholders already exist for the shared seams: the routers, `Students.jsx`, `StudentProfile.jsx`, `RecordsPanel.jsx`,
+Placeholders already exist for the shared seams: the routers, `Students.jsx`, `StudentProfile.jsx`,
 `RemediationPanel.jsx` (W1 imports and renders both panels on the profile page; do not change their props).
 
 ## API contracts (base `/api/v1/teacher`, role teacher; ids are strings)
@@ -108,9 +108,9 @@ API clients use `request(path, { method, body, token })` from `services/http.js`
 Every async view has loading, error and empty states. Forms validate on the client first and also show server `fields`/`error`.
 ### W1 students list + profile
 - `/teacher/students`: heading `Students`, search box labelled `Search students` (filters by name), a link per student (accessible name = student name) showing classes, average, attendance and an `Needs intervention` badge.
-- `/teacher/students/:studentId`: heading = student name; section headings `Grades`, `Attendance`, `Goals and Progress`, `Teacher Feedback`, `Performance Trend`, `Remediation Plans`; renders `<RecordsPanel student={profile} onSaved={reload} />` and `<RemediationPanel studentId={profile.student.id} classes={profile.classes} />`.
+- `/teacher/students/:studentId`: heading = student name and the three summary cards, then a tab list (`?tab=` in the URL, default Overview): Overview (`Performance Trend`, `At a glance`), Grades, Attendance, Goals & Feedback (`Goals and Progress`, `Teacher Feedback`), Support Plans (`Remediation Plans`, `<RemediationPanel>`). Only the open tab renders. Each tab holds its records and the matching entry forms (`components/teacher/profile/*Tab.jsx`); a pencil or double-click on a grade row loads it into the grade form.
   A 404 shows "Student not found" with a link back. `useTeacherStudentProfile` returns `{ data, isLoading, error, reload }` (add `reload` to `useApiResource` without breaking existing callers/tests).
-### W2 record entry (`RecordsPanel`, props `{ student, onSaved }`)
+### W2 record entry (forms in `components/teacher/records/`, shown inside the profile tabs)
 Forms (all labelled inputs, `role="alert"` messages, button disabled while saving, call `onSaved()` on success):
 `Save grade` (fields `Assignment` select from `student.grades`, `Points earned`, `Status`), `Save attendance` (`Class`, `Date`, `Status`),
 `Add goal` (`Goal title`, `Description`, `Target date`), `Save goal progress` (`Goal`, `Progress (%)`, `Note`), `Save feedback` (`Class`, `Feedback`) plus `Edit` on existing feedback.

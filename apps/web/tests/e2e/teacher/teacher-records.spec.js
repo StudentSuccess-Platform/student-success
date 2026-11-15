@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { ACCOUNTS, signIn } from '../helpers/auth.js'
 import { BLAKE, uniqueText } from '../helpers/api.js'
-import { openStudentProfile, recordGroup, sectionWithHeading } from '../helpers/teacher.js'
+import { openProfileTab, openStudentProfile, recordGroup, sectionWithHeading } from '../helpers/teacher.js'
 
 // Record entry on Blake Rowe's profile (Carley's roster). Judson is left alone for the student specs.
 // Every value is unique per run, so earlier runs in the shared database cannot make an assertion pass.
@@ -13,17 +13,20 @@ test.describe('teacher record entry', () => {
   })
 
   test('submitting empty forms shows named validation messages and saves nothing', async ({ page }) => {
+    await openProfileTab(page, 'Grades')
     const grade = recordGroup(page, 'Enter a grade')
     await grade.getByRole('button', { name: 'Save grade' }).click()
     await expect(grade.getByText('Assignment is required')).toBeVisible()
     await expect(grade.getByText('Points earned is required')).toBeVisible()
     await expect(grade.getByRole('status')).toHaveCount(0)
 
+    await openProfileTab(page, 'Attendance')
     const attendance = recordGroup(page, 'Record attendance')
     await attendance.getByRole('button', { name: 'Save attendance' }).click()
     await expect(attendance.getByText('Class is required')).toBeVisible()
     await expect(attendance.getByText('Date is required')).toBeVisible()
 
+    await openProfileTab(page, 'Goals & Feedback')
     const goal = recordGroup(page, 'Add a goal')
     await goal.getByRole('button', { name: 'Add goal' }).click()
     await expect(goal.getByText('Goal title is required')).toBeVisible()
@@ -34,6 +37,7 @@ test.describe('teacher record entry', () => {
   })
 
   test('a saved grade appears in the Grades table, and a second save replaces it', async ({ page }) => {
+    await openProfileTab(page, 'Grades')
     const grade = recordGroup(page, 'Enter a grade')
     const assignment = grade.getByLabel('Assignment')
     await assignment.selectOption({ index: 1 })
@@ -61,6 +65,7 @@ test.describe('teacher record entry', () => {
   })
 
   test('the edit icon and a double-click on a grade jump to the grade form for that assignment', async ({ page }) => {
+    await openProfileTab(page, 'Grades')
     const gradesRows = sectionWithHeading(page, 'Grades').locator('tbody tr')
     const grade = recordGroup(page, 'Enter a grade')
 
@@ -84,6 +89,7 @@ test.describe('teacher record entry', () => {
   })
 
   test('a recorded attendance day appears in the Attendance table', async ({ page }) => {
+    await openProfileTab(page, 'Attendance')
     const attendance = recordGroup(page, 'Record attendance')
     const day = '2026-02-17'
     await attendance.getByLabel('Class').selectOption({ index: 1 })
@@ -97,6 +103,7 @@ test.describe('teacher record entry', () => {
   })
 
   test('a new goal appears under Goals and Progress, and a progress update is shown on it', async ({ page }) => {
+    await openProfileTab(page, 'Goals & Feedback')
     const title = uniqueText('Goal')
     const goal = recordGroup(page, 'Add a goal')
     await goal.getByLabel('Goal title').fill(title)
@@ -123,6 +130,7 @@ test.describe('teacher record entry', () => {
   })
 
   test('feedback is added to Teacher Feedback and can be edited there', async ({ page }) => {
+    await openProfileTab(page, 'Goals & Feedback')
     const original = uniqueText('Feedback draft')
     const revised = uniqueText('Feedback revised')
     const feedback = recordGroup(page, 'Write feedback')
