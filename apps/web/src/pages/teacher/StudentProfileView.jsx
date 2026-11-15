@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import StatCard from '../../components/common/StatCard'
 import PerformanceTrendChart from '../../components/common/PerformanceTrendChart'
+import CollapsibleSection from '../../components/teacher/CollapsibleSection'
 import RecordsPanel from '../../components/teacher/records/RecordsPanel'
 import RemediationPanel from '../../components/teacher/remediation/RemediationPanel'
 import bookOpenIcon from '../../assets/icons/dashboard/book-open.svg'
@@ -110,8 +111,7 @@ function StudentProfileView({ data, isLoading, error, reload }) {
         />
       </div>
 
-      <section className="teacher-section">
-        <h2 className="teacher-section-title">Grades</h2>
+      <CollapsibleSection title="Grades">
         {grades.length === 0 ? (
           <p className="chart-empty">No grades yet.</p>
         ) : (
@@ -144,10 +144,9 @@ function StudentProfileView({ data, isLoading, error, reload }) {
             </table>
           </div>
         )}
-      </section>
+      </CollapsibleSection>
 
-      <section className="teacher-section">
-        <h2 className="teacher-section-title">Attendance</h2>
+      <CollapsibleSection title="Attendance">
         <p className="teacher-muted">Attendance rate: {formatPercent(attendance.rate)}</p>
         {attendance.records.length === 0 ? (
           <p className="chart-empty">No attendance records yet.</p>
@@ -173,7 +172,7 @@ function StudentProfileView({ data, isLoading, error, reload }) {
             </table>
           </div>
         )}
-      </section>
+      </CollapsibleSection>
 
       <section className="teacher-section">
         <h2 className="teacher-section-title">Goals and Progress</h2>

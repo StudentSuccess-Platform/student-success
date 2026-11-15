@@ -20,6 +20,50 @@
   color: var(--dash-heading);
 }
 
+.teacher-collapse-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.teacher-collapse-toggle:focus-visible {
+  outline: 2px solid var(--dash-heading);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.teacher-collapse-chevron {
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.teacher-collapse-chevron[data-open='true'] {
+  transform: rotate(-135deg);
+}
+
+.teacher-collapse-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.teacher-collapse-body[hidden] {
+  display: none;
+}
+
 .teacher-muted {
   font-size: 14px;
   color: var(--dash-body-text);
