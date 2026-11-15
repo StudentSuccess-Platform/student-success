@@ -12,7 +12,6 @@ describe("student and parent views", { skip: uri ? false : "set MONGODB_URI to a
   let school;
   let ada;
   let ben;
-  let teacher;
   let parent;
 
   const api = (path, headers = {}) => fetch(`${ctx.baseUrl}/api/v1${path}`, { headers });
@@ -24,7 +23,6 @@ describe("student and parent views", { skip: uri ? false : "set MONGODB_URI to a
     school = await createSchool();
     ada = await signIn(ctx.baseUrl, "ada@example.test");
     ben = await signIn(ctx.baseUrl, "ben@example.test");
-    teacher = await signIn(ctx.baseUrl, "teacher@example.test");
     parent = await signIn(ctx.baseUrl, "parent@example.test");
   });
 
@@ -35,11 +33,7 @@ describe("student and parent views", { skip: uri ? false : "set MONGODB_URI to a
   });
 
   describe("GET /student/dashboard", () => {
-    test("requires a student", async () => {
-      assert.equal((await api("/student/dashboard")).status, 401);
-      assert.equal((await api("/student/dashboard", teacher)).status, 403);
-      assert.equal((await api("/student/dashboard", parent)).status, 403);
-    });
+    // Role and token rules for every student endpoint live in student-auth.test.js.
 
     test("returns only the signed-in student's own data", async () => {
       const body = await (await api("/student/dashboard", ada)).json();

@@ -38,6 +38,10 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # Runs on every PR (not only web changes) so a misplaced API or web test is always caught.
+      - name: Check test file layout
+        run: sh scripts/check-test-layout.sh
+
       - uses: actions/setup-node@v4
         if: steps.changes.outputs.run == 'true'
         with:

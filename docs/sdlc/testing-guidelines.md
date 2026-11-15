@@ -15,7 +15,12 @@ apps/<app>/tests/
   web `auth`, `teacher`, `student`, `parent`, `common`, `utils`.
 - File name = what it tests: `Login.test.jsx`, `auth.test.js`. Fast critical-path API tests end in `.smoke.test.js`.
 - API reference: `apps/api/tests/README.md`. Web tests import source with `../../../src/...` from `tests/unit/<module>/`.
-- Existing flat files in `apps/web/tests/unit/` are legacy. Move them into module folders when you touch them.
+- Web unit modules: `app` (App routing), `auth`, `common` (shared components, layouts), `student`, `teacher`, `utils`
+  (`parent` joins when that portal lands). Pick the module of the source file under test; add a new folder only for a new feature area.
+- No loose files directly in `tests/unit/`, `tests/integration/` or `tests/e2e/`. `sh scripts/check-test-layout.sh` checks the
+  whole repo, and Web CI runs it on every PR, so a misplaced test fails the check.
+- One place per concern: access rules (401/403) for an endpoint group live in one `<group>-auth.test.js`; do not repeat them
+  in data tests.
 
 ## Rules for every change
 1. Add or update tests in the same PR. A bug fix adds a regression test in its module.

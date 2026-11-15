@@ -2,7 +2,7 @@
 
 Playwright drives a real browser against the real web app, API and database.
 Layout follows `docs/sdlc/testing-guidelines.md`: `tests/e2e/<module>/<name>.spec.js`, shared helpers in `helpers/`.
-Modules: `auth`, `teacher`, `access`. Unit tests (Vitest) live in `tests/unit/` and never run these files.
+Modules: `auth`, `teacher`, `student`, `access`. Unit tests (Vitest) live in `tests/unit/` and never run these files.
 
 ## Run
 1. `docker compose up -d mongo`, then `cd apps/api && npm run db:reset` (the specs rely on the seeded accounts).
