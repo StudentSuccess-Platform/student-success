@@ -77,6 +77,21 @@ describe('StudentDashboard', () => {
     ).toBeInTheDocument()
   })
 
+  it('lists every feedback note from the history, newest first', async () => {
+    getStudentDashboard.mockResolvedValue({
+      ...studentDashboardData,
+      feedbackHistory: [
+        { id: 'f2', teacher: 'Ms. Lee', date: '2026-03-02', message: 'Newest note' },
+        { id: 'f1', teacher: 'Ms. Lee', date: '2026-02-01', message: 'Older note' },
+      ],
+    })
+    render(<StudentDashboard />)
+
+    const newest = await screen.findByText('Newest note')
+    const older = screen.getByText('Older note')
+    expect(newest.compareDocumentPosition(older) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('displays the approved support plan', async () => {
     render(<StudentDashboard />)
 

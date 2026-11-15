@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { startTestServer } from "../../helpers/server.js";
 import { connectDatabase, disconnectDatabase } from "../../../src/config/database.js";
 import { createTestDatabaseUri, dropTestDatabase } from "../../helpers/database.js";
+import { TeacherFeedback } from "../../../src/models/index.js";
 import { addPlan, createSchool, signIn, PRIVATE_NOTE } from "../../helpers/fixtures.js";
 
 const uri = createTestDatabaseUri();
@@ -48,6 +49,24 @@ describe("student and parent views", { skip: uri ? false : "set MONGODB_URI to a
       assert.equal(other.student.firstName, "Ben");
       assert.equal(other.summary.currentGrade, 50);
       assert.deepEqual(other.goals, []);
+    });
+
+    test("returns every shared feedback note, newest first, and keeps the latest in teacherFeedback", async () => {
+      const base = { teacher: school.teacher._id, section: school.section._id };
+      const day = 24 * 60 * 60 * 1000;
+      await TeacherFeedback.create({ ...base, student: school.adaProfile._id, body: "Older note", createdAt: new Date(Date.now() - 2 * day) });
+      await TeacherFeedback.create({ ...base, student: school.benProfile._id, body: "Ben only" });
+
+      const body = await (await api("/student/dashboard", ada)).json();
+      assert.deepEqual(body.feedbackHistory.map((f) => f.message), ["Great work", "Older note"]);
+      assert.equal(body.teacherFeedback.message, "Great work");
+      assert.equal(body.feedbackHistory[0].teacher, body.teacherFeedback.teacher);
+      assert.ok(body.feedbackHistory.every((f) => f.id && f.date));
+
+      const text = JSON.stringify(body);
+      assert.ok(!text.includes("Ben only") && !text.includes(PRIVATE_NOTE));
+      const family = await (await api(`/parent/children/${school.adaProfile._id}/dashboard`, parent)).json();
+      assert.deepEqual(family.feedbackHistory.map((f) => f.message), ["Great work", "Older note"]);
     });
 
     test("never exposes private teacher notes", async () => {
