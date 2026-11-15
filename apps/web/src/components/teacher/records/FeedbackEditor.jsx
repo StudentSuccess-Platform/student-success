@@ -22,7 +22,7 @@ function FeedbackEditor({ studentId, item, onSaved, onClose }) {
 
   return (
     <form className="teacher-form" onSubmit={handleSubmit} noValidate>
-      <RecordField id={inputId} label="Feedback" error={fieldErrors.body}>
+      <RecordField id={inputId} label="Edit feedback" error={fieldErrors.body}>
         <textarea
           {...fieldProps(inputId, fieldErrors.body)}
           rows={4}
@@ -30,7 +30,7 @@ function FeedbackEditor({ studentId, item, onSaved, onClose }) {
           onChange={(event) => setBody(event.target.value)}
         />
       </RecordField>
-      <RecordFormFooter saving={saving} saved={saved} formError={formError} submitLabel="Save feedback" />
+      <RecordFormFooter saving={saving} saved={saved} formError={formError} submitLabel="Save edited feedback" />
       <div className="teacher-form-actions">
         <button type="button" className="teacher-button" onClick={onClose}>
           Cancel

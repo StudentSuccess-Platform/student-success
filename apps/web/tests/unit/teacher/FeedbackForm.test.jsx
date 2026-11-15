@@ -85,7 +85,7 @@ describe('FeedbackForm', () => {
     await user.type(screen.getByLabelText('Feedback'), 'Long text')
     await user.click(screen.getByRole('button', { name: 'Save feedback' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Please fix the highlighted fields')
+    expect(await screen.findByText('Please fix the highlighted fields')).toHaveAttribute('role', 'alert')
     expect(screen.getByText('Feedback is too long')).toBeInTheDocument()
     expect(onSaved).not.toHaveBeenCalled()
   })

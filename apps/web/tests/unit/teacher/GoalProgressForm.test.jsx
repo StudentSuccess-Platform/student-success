@@ -99,7 +99,7 @@ describe('GoalProgressForm', () => {
     await user.type(screen.getByLabelText('Note'), 'Hmm')
     await user.click(screen.getByRole('button', { name: 'Save goal progress' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Please fix the highlighted fields')
+    expect(await screen.findByText('Please fix the highlighted fields')).toHaveAttribute('role', 'alert')
     expect(screen.getByText('Progress must go up')).toBeInTheDocument()
     expect(onSaved).not.toHaveBeenCalled()
   })
@@ -121,5 +121,35 @@ describe('GoalProgressForm', () => {
 
     expect(screen.getByText(/No goals yet/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Save goal progress' })).not.toBeInTheDocument()
+  })
+})
+
+describe('GoalProgressForm progress rules', () => {
+  it('rejects a decimal progress value and links the message to the input', async () => {
+    const { user } = renderForm()
+
+    await user.selectOptions(screen.getByLabelText('Goal'), 'g1')
+    await user.type(screen.getByLabelText('Progress (%)'), '42.5')
+    await user.type(screen.getByLabelText('Note'), 'Halfway')
+    await user.click(screen.getByRole('button', { name: 'Save goal progress' }))
+
+    expect(api.addGoalUpdate).not.toHaveBeenCalled()
+    expect(screen.getByText('Progress (%) must be a whole number')).toBeInTheDocument()
+    const progress = screen.getByLabelText('Progress (%)')
+    expect(progress).toHaveAttribute('aria-invalid', 'true')
+    expect(document.getElementById(progress.getAttribute('aria-describedby'))).toHaveTextContent(
+      'Progress (%) must be a whole number'
+    )
+  })
+
+  it('accepts 100 as a whole number', async () => {
+    const { user } = renderForm()
+
+    await user.selectOptions(screen.getByLabelText('Goal'), 'g2')
+    await user.type(screen.getByLabelText('Progress (%)'), '100')
+    await user.type(screen.getByLabelText('Note'), 'Done')
+    await user.click(screen.getByRole('button', { name: 'Save goal progress' }))
+
+    expect(api.addGoalUpdate).toHaveBeenCalledWith('stu-1', 'g2', { progressPercent: 100, note: 'Done' })
   })
 })

@@ -53,7 +53,7 @@ function StudentProfileView({ data, isLoading, error, reload }) {
     )
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <p className="dashboard-status dashboard-status--error">
         Couldn&apos;t load this student. Please try again.
@@ -69,6 +69,11 @@ function StudentProfileView({ data, isLoading, error, reload }) {
 
   return (
     <div className="student-profile">
+      {error && (
+        <p role="alert" className="dashboard-status dashboard-status--error">
+          Could not refresh this page. {error.message}
+        </p>
+      )}
       <PageHeader
         title={student.name}
         subtitle={`Grade ${student.gradeLevel} · Student #${student.studentNumber}`}
@@ -87,7 +92,7 @@ function StudentProfileView({ data, isLoading, error, reload }) {
         />
         <StatCard
           icon={calendarCheckIcon}
-          label="Attendance"
+          label="Attendance rate"
           value={formatPercent(summary.attendanceRate)}
         />
         <StatCard

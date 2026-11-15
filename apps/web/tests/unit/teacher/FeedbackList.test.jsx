@@ -56,12 +56,12 @@ describe('FeedbackList', () => {
     const { user, onSaved } = renderList()
 
     await user.click(screen.getAllByRole('button', { name: 'Edit' })[0])
-    const editor = screen.getByLabelText('Feedback')
+    const editor = screen.getByLabelText('Edit feedback')
     expect(editor).toHaveValue('Shows steady effort')
 
     await user.clear(editor)
     await user.type(editor, ' Revised ')
-    await user.click(screen.getByRole('button', { name: 'Save feedback' }))
+    await user.click(screen.getByRole('button', { name: 'Save edited feedback' }))
 
     expect(api.updateFeedback).toHaveBeenCalledTimes(1)
     expect(api.updateFeedback).toHaveBeenCalledWith('stu-1', 'f1', { body: 'Revised' })
@@ -73,8 +73,8 @@ describe('FeedbackList', () => {
     const { user, onSaved } = renderList()
 
     await user.click(screen.getAllByRole('button', { name: 'Edit' })[1])
-    await user.clear(screen.getByLabelText('Feedback'))
-    await user.click(screen.getByRole('button', { name: 'Save feedback' }))
+    await user.clear(screen.getByLabelText('Edit feedback'))
+    await user.click(screen.getByRole('button', { name: 'Save edited feedback' }))
 
     expect(api.updateFeedback).not.toHaveBeenCalled()
     expect(onSaved).not.toHaveBeenCalled()
@@ -88,9 +88,9 @@ describe('FeedbackList', () => {
     const { user, onSaved } = renderList()
 
     await user.click(screen.getAllByRole('button', { name: 'Edit' })[0])
-    await user.click(screen.getByRole('button', { name: 'Save feedback' }))
+    await user.click(screen.getByRole('button', { name: 'Save edited feedback' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Only the teacher who wrote this feedback can change it')
+    expect(await screen.findByText('Only the teacher who wrote this feedback can change it')).toHaveAttribute('role', 'alert')
     expect(onSaved).not.toHaveBeenCalled()
   })
 
@@ -101,7 +101,7 @@ describe('FeedbackList', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
     expect(api.updateFeedback).not.toHaveBeenCalled()
-    expect(screen.queryByLabelText('Feedback')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Edit feedback')).not.toBeInTheDocument()
     expect(screen.getByText('Shows steady effort')).toBeInTheDocument()
   })
 })

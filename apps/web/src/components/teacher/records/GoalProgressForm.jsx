@@ -16,6 +16,7 @@ function validate(values) {
   if (!errors.progressPercent) {
     const progress = Number(values.progressPercent)
     if (Number.isNaN(progress)) errors.progressPercent = 'Progress (%) must be a number'
+    else if (!Number.isInteger(progress)) errors.progressPercent = 'Progress (%) must be a whole number'
     else if (progress < 0 || progress > 100) errors.progressPercent = 'Progress (%) must be between 0 and 100'
   }
   return errors

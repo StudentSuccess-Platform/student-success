@@ -102,7 +102,7 @@ describe('GradeEntryForm', () => {
     await user.type(screen.getByLabelText('Points earned'), '-4')
     await user.click(screen.getByRole('button', { name: 'Save grade' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Please fix the highlighted fields')
+    expect(await screen.findByText('Please fix the highlighted fields')).toHaveAttribute('role', 'alert')
     expect(screen.getByText('Points earned must be 0 or more')).toBeInTheDocument()
     expect(screen.getByLabelText('Points earned')).toHaveAttribute('aria-invalid', 'true')
     expect(onSaved).not.toHaveBeenCalled()
@@ -117,7 +117,7 @@ describe('GradeEntryForm', () => {
     await user.type(screen.getByLabelText('Points earned'), '10')
     await user.click(screen.getByRole('button', { name: 'Save grade' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('The grade could not be saved')
+    expect(await screen.findByText(/The grade could not be saved/)).toHaveAttribute('role', 'alert')
     expect(onSaved).not.toHaveBeenCalled()
   })
 

@@ -220,3 +220,61 @@ function renderCardAndReturn(plan) {
   render(<RemediationPlanCard studentId="stu-1" plan={plan} onChanged={onChanged} />)
   return { onChanged }
 }
+
+describe('RemediationPlanCard edit form', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('links a blank title error to its input', async () => {
+    const user = userEvent.setup()
+    render(<RemediationPlanCard studentId="stu-1" plan={makePlan()} onChanged={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await user.clear(screen.getByLabelText('Plan title'))
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    const title = screen.getByLabelText('Plan title')
+    expect(title).toHaveAttribute('aria-invalid', 'true')
+    expect(document.getElementById(title.getAttribute('aria-describedby'))).toHaveTextContent(
+      'Plan title is required'
+    )
+    expect(api.editPlan).not.toHaveBeenCalled()
+  })
+
+  it('shows server field errors under their inputs and keeps the editor open', async () => {
+    const user = userEvent.setup()
+    const onChanged = vi.fn()
+    api.editPlan.mockRejectedValue(
+      new ApiError('Please fix the highlighted fields', {
+        status: 400,
+        body: { fields: { rationale: 'Rationale is too long' } },
+      })
+    )
+    render(<RemediationPlanCard studentId="stu-1" plan={makePlan()} onChanged={onChanged} />)
+
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    const rationale = screen.getByLabelText('Rationale')
+    expect(rationale).toHaveAttribute('aria-invalid', 'true')
+    expect(document.getElementById(rationale.getAttribute('aria-describedby'))).toHaveTextContent(
+      'Rationale is too long'
+    )
+    expect(await screen.findByText('Please fix the highlighted fields')).toHaveAttribute('role', 'alert')
+    expect(screen.getByLabelText('Plan title')).toBeInTheDocument()
+    expect(onChanged).not.toHaveBeenCalled()
+  })
+
+  it('renders repeated steps that have no id', () => {
+    render(
+      <RemediationPlanCard
+        studentId="stu-1"
+        plan={makePlan({ items: [{ title: 'Same step' }, { title: 'Same step' }] })}
+        onChanged={vi.fn()}
+      />
+    )
+
+    expect(screen.getAllByText('Same step')).toHaveLength(2)
+  })
+})

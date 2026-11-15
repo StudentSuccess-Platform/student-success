@@ -55,3 +55,46 @@ describe('useApiResource', () => {
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
 })
+
+
+describe('useApiResource failed reloads', () => {
+  it('keeps the loaded data and sets the error when a reload fails', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce({ n: 1 }).mockRejectedValueOnce(new Error('offline'))
+
+    const { result } = renderHook(() => useApiResource(fetcher))
+    await waitFor(() => expect(result.current.data).toEqual({ n: 1 }))
+
+    act(() => result.current.reload())
+
+    await waitFor(() => expect(result.current.error).toEqual(new Error('offline')))
+    expect(result.current.data).toEqual({ n: 1 })
+    expect(result.current.isLoading).toBe(false)
+  })
+
+  it('clears the error after a later reload succeeds', async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({ n: 1 })
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({ n: 2 })
+
+    const { result } = renderHook(() => useApiResource(fetcher))
+    await waitFor(() => expect(result.current.data).toEqual({ n: 1 }))
+
+    act(() => result.current.reload())
+    await waitFor(() => expect(result.current.error).not.toBeNull())
+
+    act(() => result.current.reload())
+    await waitFor(() => expect(result.current.data).toEqual({ n: 2 }))
+    expect(result.current.error).toBeNull()
+  })
+
+  it('keeps data null and the error set when the first load fails', async () => {
+    const fetcher = vi.fn().mockRejectedValue(new Error('down'))
+
+    const { result } = renderHook(() => useApiResource(fetcher))
+    await waitFor(() => expect(result.current.error).toEqual(new Error('down')))
+
+    expect(result.current.data).toBeNull()
+  })
+})

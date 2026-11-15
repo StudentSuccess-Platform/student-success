@@ -5,6 +5,7 @@ import {
   publishPlan,
   rejectPlan,
 } from '../../../services/teacherRemediationApi'
+import { errorId, fieldProps } from '../records/recordFormHelpers'
 import {
   allowedActions,
   itemsToStepsText,
@@ -76,14 +77,23 @@ function RemediationPlanCard({ studentId, plan, onChanged }) {
     }
 
     setEditErrors({})
-    const saved = await run(() =>
-      editPlan(studentId, plan.id, {
+    setActionError('')
+    setIsBusy(true)
+    try {
+      await editPlan(studentId, plan.id, {
         title: draft.title.trim(),
         rationale: draft.rationale.trim(),
         items: stepsToItems(draft.steps),
       })
-    )
-    if (saved) closeEditor()
+    } catch (error) {
+      setEditErrors(error?.fields ?? {})
+      setActionError(error?.message || 'Something went wrong. Please try again.')
+      setIsBusy(false)
+      return
+    }
+    setIsBusy(false)
+    onChanged()
+    closeEditor()
   }
 
   const handlers = {
@@ -111,33 +121,46 @@ function RemediationPlanCard({ studentId, plan, onChanged }) {
           <div className="teacher-field">
             <label htmlFor={titleId}>Plan title</label>
             <input
-              id={titleId}
+              {...fieldProps(titleId, editErrors.title)}
               type="text"
               value={draft.title}
               onChange={(event) => setDraft({ ...draft, title: event.target.value })}
-              aria-invalid={editErrors.title ? true : undefined}
             />
-            {editErrors.title && <p className="teacher-field-error">{editErrors.title}</p>}
+            {editErrors.title && (
+              <p id={errorId(titleId)} role="alert" className="teacher-field-error">
+                {editErrors.title}
+              </p>
+            )}
           </div>
 
           <div className="teacher-field">
             <label htmlFor={rationaleId}>Rationale</label>
             <textarea
-              id={rationaleId}
+              {...fieldProps(rationaleId, editErrors.rationale)}
               rows={3}
               value={draft.rationale}
               onChange={(event) => setDraft({ ...draft, rationale: event.target.value })}
             />
+            {editErrors.rationale && (
+              <p id={errorId(rationaleId)} role="alert" className="teacher-field-error">
+                {editErrors.rationale}
+              </p>
+            )}
           </div>
 
           <div className="teacher-field">
             <label htmlFor={stepsId}>Steps (one per line)</label>
             <textarea
-              id={stepsId}
+              {...fieldProps(stepsId, editErrors.items)}
               rows={4}
               value={draft.steps}
               onChange={(event) => setDraft({ ...draft, steps: event.target.value })}
             />
+            {editErrors.items && (
+              <p id={errorId(stepsId)} role="alert" className="teacher-field-error">
+                {editErrors.items}
+              </p>
+            )}
           </div>
 
           <div className="teacher-form-actions">
@@ -158,8 +181,8 @@ function RemediationPlanCard({ studentId, plan, onChanged }) {
           {plan.rationale && <p className="remediation-rationale">{plan.rationale}</p>}
           {items.length > 0 && (
             <ol className="remediation-steps">
-              {items.map((item) => (
-                <li key={item.id ?? item.title}>
+              {items.map((item, index) => (
+                <li key={`${item.id ?? 'step'}-${index}`}>
                   <span>{item.title}</span>
                   {item.description && <span className="teacher-muted"> {item.description}</span>}
                 </li>
