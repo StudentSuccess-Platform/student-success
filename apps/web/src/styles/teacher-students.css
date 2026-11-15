@@ -1,0 +1,81 @@
+/* Student list and student profile (W1). Shared table, badge and section classes live in teacher-shared.css. */
+
+.students-page,
+.student-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+
+.students-section {
+  gap: 12px;
+}
+
+.students-search {
+  max-width: 360px;
+}
+
+.students-table-wrap,
+.student-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--dash-border);
+  border-radius: 10px;
+}
+
+.student-list-item p {
+  margin: 0;
+}
+
+.student-goal-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.student-item-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dash-heading);
+}
+
+.student-goal-progress {
+  width: 100%;
+  height: 10px;
+  accent-color: var(--dash-orange);
+}
+
+.student-goal-note {
+  font-size: 14px;
+  color: var(--dash-body-text);
+}
+
+@media (max-width: 600px) {
+  .student-profile .teacher-section {
+    padding: 16px;
+  }
+
+  .students-search {
+    max-width: none;
+  }
+}
