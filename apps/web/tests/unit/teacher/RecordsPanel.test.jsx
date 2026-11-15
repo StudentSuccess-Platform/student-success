@@ -78,8 +78,18 @@ describe('RecordsPanel', () => {
 
     expect(screen.getByText(/No assignments yet/)).toBeInTheDocument()
     expect(screen.getAllByText(/No classes yet/)).toHaveLength(2)
-    expect(screen.getByText(/No goals yet/)).toBeInTheDocument()
+    // Progress and edit forms each show the empty-goals hint.
+    expect(screen.getAllByText(/No goals yet/)).toHaveLength(2)
     expect(screen.getByText('No feedback yet.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add goal' })).toBeEnabled()
+  })
+})
+
+describe('RecordsPanel goal editing', () => {
+  it('renders the goal edit form under the progress form', () => {
+    render(<RecordsPanel student={profile} onSaved={vi.fn()} />)
+
+    expect(screen.getByRole('heading', { name: 'Edit a goal', level: 3 })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save goal changes' })).toBeInTheDocument()
   })
 })

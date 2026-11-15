@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react'
  * call in useCallback, e.g. `useApiResource(useCallback((t) => getStudentProfile(t, id), [id]))`.
  * Returns `{ data, isLoading, error, reload }`. `reload()` refetches in the background and keeps the
  * current data on screen until the new response arrives (so forms and scroll position survive).
+ * If a reload fails, the previously loaded data stays and `error` is set; a failed first load leaves data null.
  */
 function useApiResource(fetcher) {
   const [state, setState] = useState({ data: null, isLoading: true, error: null })
@@ -27,7 +28,9 @@ function useApiResource(fetcher) {
         if (!cancelled) setState({ data, isLoading: false, error: null })
       })
       .catch((error) => {
-        if (!cancelled) setState({ data: null, isLoading: false, error })
+        if (!cancelled) {
+          setState((previous) => ({ data: previous.data, isLoading: false, error }))
+        }
       })
 
     return () => {

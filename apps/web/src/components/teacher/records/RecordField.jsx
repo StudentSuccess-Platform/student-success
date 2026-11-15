@@ -7,7 +7,7 @@ function RecordField({ id, label, error, children }) {
       <label htmlFor={id}>{label}</label>
       {children}
       {error && (
-        <p id={errorId(id)} className="teacher-field-error">
+        <p id={errorId(id)} role="alert" className="teacher-field-error">
           {error}
         </p>
       )}

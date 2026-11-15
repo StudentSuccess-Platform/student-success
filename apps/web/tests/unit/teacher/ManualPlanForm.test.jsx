@@ -70,7 +70,7 @@ describe('ManualPlanForm', () => {
 
     expect(await screen.findByText('Title is too long')).toBeInTheDocument()
     expect(screen.getByText('Too many steps')).toBeInTheDocument()
-    expect(screen.getByRole('alert')).toHaveTextContent('Please fix the highlighted fields')
+    expect(screen.getByText('Please fix the highlighted fields')).toHaveAttribute('role', 'alert')
   })
 
   it('shows a generic message when the save fails without details', async () => {
@@ -81,8 +81,9 @@ describe('ManualPlanForm', () => {
     await user.type(screen.getByLabelText('Plan title'), 'Plan')
     await user.click(screen.getByRole('button', { name: 'Save plan' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Could not save the plan. Please try again.'
+    expect(await screen.findByText('Could not save the plan. Please try again.')).toHaveAttribute(
+      'role',
+      'alert'
     )
   })
 
@@ -114,5 +115,56 @@ describe('ManualPlanForm', () => {
 
     render(<ManualPlanForm studentId="stu-1" sectionId="sec-1" onSaved={vi.fn()} />)
     expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument()
+  })
+})
+
+describe('ManualPlanForm field errors', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('links a blank title error to its input with aria-invalid and aria-describedby', async () => {
+    const user = userEvent.setup()
+    render(<ManualPlanForm studentId="stu-1" sectionId="sec-1" onSaved={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Save plan' }))
+
+    const title = screen.getByLabelText('Plan title')
+    expect(title).toHaveAttribute('aria-invalid', 'true')
+    const message = document.getElementById(title.getAttribute('aria-describedby'))
+    expect(message).toHaveTextContent('Plan title is required')
+    expect(message).toHaveAttribute('role', 'alert')
+  })
+
+  it('links server field errors for rationale and steps and shows the section error', async () => {
+    const user = userEvent.setup()
+    api.createManualPlan.mockRejectedValue(
+      new ApiError('Please fix the highlighted fields', {
+        status: 400,
+        body: {
+          fields: {
+            rationale: 'Rationale is too long',
+            items: 'Add at least one step',
+            sectionId: 'Choose a class',
+          },
+        },
+      })
+    )
+    render(<ManualPlanForm studentId="stu-1" sectionId="sec-1" onSaved={vi.fn()} />)
+
+    await user.type(screen.getByLabelText('Plan title'), 'Plan')
+    await user.click(screen.getByRole('button', { name: 'Save plan' }))
+
+    const rationale = screen.getByLabelText('Rationale')
+    expect(rationale).toHaveAttribute('aria-invalid', 'true')
+    expect(document.getElementById(rationale.getAttribute('aria-describedby'))).toHaveTextContent(
+      'Rationale is too long'
+    )
+    const steps = screen.getByLabelText('Steps (one per line)')
+    expect(steps).toHaveAttribute('aria-invalid', 'true')
+    expect(document.getElementById(steps.getAttribute('aria-describedby'))).toHaveTextContent(
+      'Add at least one step'
+    )
+    expect(await screen.findByText('Choose a class')).toHaveAttribute('role', 'alert')
   })
 })

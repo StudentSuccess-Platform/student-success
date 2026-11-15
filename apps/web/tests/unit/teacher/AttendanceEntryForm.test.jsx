@@ -91,7 +91,7 @@ describe('AttendanceEntryForm', () => {
     await user.type(screen.getByLabelText('Date'), '2030-01-01')
     await user.click(screen.getByRole('button', { name: 'Save attendance' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Please fix the highlighted fields')
+    expect(await screen.findByText('Please fix the highlighted fields')).toHaveAttribute('role', 'alert')
     expect(screen.getByText('Date is outside the term')).toBeInTheDocument()
     expect(onSaved).not.toHaveBeenCalled()
   })

@@ -1,5 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import StudentProfile from '../../../src/pages/teacher/StudentProfile'
 import { ApiError } from '../../../src/services/http'
@@ -162,6 +163,7 @@ describe('Student profile page', () => {
     expect(screen.getByText('Grade 10 · Student #S-1001')).toBeInTheDocument()
     expect(screen.getByText('72%')).toBeInTheDocument()
     expect(screen.getByText('90%')).toBeInTheDocument()
+    expect(screen.getByText('Attendance rate')).toBeInTheDocument()
     expect(screen.getByText('Needs intervention')).toHaveClass('teacher-badge--warning')
     expect(screen.getByText('Average grade below 75%')).toBeInTheDocument()
   })
@@ -313,5 +315,66 @@ describe('Student profile page', () => {
       await screen.findByText(/couldn't load this student\. please try again\./i)
     ).toBeInTheDocument()
     expect(screen.queryByText('Student not found')).not.toBeInTheDocument()
+  })
+})
+
+
+function SwitchStudentButton() {
+  const navigate = useNavigate()
+  return (
+    <button type="button" onClick={() => navigate('/teacher/students/stu2')}>
+      Open second student
+    </button>
+  )
+}
+
+describe('Student profile when switching students', () => {
+  it('does not show the previous student while the next profile loads', async () => {
+    const user = userEvent.setup()
+    getStudentProfile.mockImplementation((_token, id) =>
+      id === 'stu1' ? Promise.resolve(profile) : new Promise(() => {})
+    )
+
+    render(
+      <MemoryRouter initialEntries={['/teacher/students/stu1']}>
+        <SwitchStudentButton />
+        <Routes>
+          <Route path="/teacher/students/:studentId" element={<StudentProfile />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await screen.findByRole('heading', { name: 'Ada Lovelace' })
+    await user.click(screen.getByRole('button', { name: 'Open second student' }))
+
+    expect(await screen.findByText('Loading student…')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Ada Lovelace' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Grades' })).not.toBeInTheDocument()
+    expect(getStudentProfile.mock.calls.at(-1)[1]).toBe('stu2')
+  })
+})
+
+describe('Student profile when a refresh fails', () => {
+  it('keeps the content and shows a refresh alert above it, and clears the alert after a good reload', async () => {
+    getStudentProfile.mockResolvedValueOnce(profile)
+    renderProfile()
+    await screen.findByRole('heading', { name: 'Ada Lovelace' })
+
+    getStudentProfile.mockRejectedValueOnce(new ApiError('Server is busy', { status: 500 }))
+    act(() => recordsPanelSpy.mock.lastCall[0].onSaved())
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Could not refresh this page. Server is busy')
+    const heading = screen.getByRole('heading', { name: 'Ada Lovelace' })
+    expect(alert.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByText('records-panel')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Grades' })).toBeInTheDocument()
+    expect(screen.queryByText('Student not found')).not.toBeInTheDocument()
+
+    getStudentProfile.mockResolvedValueOnce(profile)
+    act(() => recordsPanelSpy.mock.lastCall[0].onSaved())
+
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+    expect(screen.getByRole('heading', { name: 'Ada Lovelace' })).toBeInTheDocument()
   })
 })

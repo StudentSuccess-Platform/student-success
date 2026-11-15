@@ -68,3 +68,17 @@ describe('request', () => {
     expect(error.message).toMatch(/network error/i)
   })
 })
+
+
+describe('request with unusual error bodies', () => {
+  it('throws ApiError with the fallback message when the error body is JSON null', async () => {
+    mockFetch(500, null)
+
+    const error = await request('/api/v1/x').catch((caught) => caught)
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error.status).toBe(500)
+    expect(error.message).toBe('Something went wrong. Please try again.')
+    expect(error.fields).toBeUndefined()
+  })
+})

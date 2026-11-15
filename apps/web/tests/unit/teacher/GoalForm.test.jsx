@@ -90,7 +90,7 @@ describe('GoalForm', () => {
     await user.type(screen.getByLabelText('Goal title'), 'x')
     await user.click(screen.getByRole('button', { name: 'Add goal' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Please fix the highlighted fields')
+    expect(await screen.findByText('Please fix the highlighted fields')).toHaveAttribute('role', 'alert')
     expect(screen.getByText('Title is too long')).toBeInTheDocument()
     expect(onSaved).not.toHaveBeenCalled()
   })

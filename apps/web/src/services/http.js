@@ -44,10 +44,11 @@ export async function request(path, { method = 'GET', body, token } = {}) {
     })
   }
 
-  const data = await response.json().catch(() => ({}))
+  // A JSON `null` body is treated like an empty object so error handling never reads a property of null.
+  const data = (await response.json().catch(() => ({}))) ?? {}
 
   if (!response.ok) {
-    throw new ApiError(data.error || 'Something went wrong. Please try again.', {
+    throw new ApiError(data?.error || 'Something went wrong. Please try again.', {
       status: response.status,
       body: data,
     })

@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { createManualPlan } from '../../../services/teacherRemediationApi'
+import { errorId, fieldProps } from '../records/recordFormHelpers'
 import { stepsToItems } from './planStatus'
 
 function ManualPlanForm({ studentId, sectionId, onSaved, onCancel }) {
@@ -51,40 +52,55 @@ function ManualPlanForm({ studentId, sectionId, onSaved, onCancel }) {
         </p>
       )}
 
+      {fieldErrors.sectionId && (
+        <p role="alert" className="teacher-form-error">
+          {fieldErrors.sectionId}
+        </p>
+      )}
+
       <div className="teacher-field">
         <label htmlFor={titleId}>Plan title</label>
         <input
-          id={titleId}
+          {...fieldProps(titleId, fieldErrors.title)}
           type="text"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          aria-invalid={fieldErrors.title ? true : undefined}
         />
-        {fieldErrors.title && <p className="teacher-field-error">{fieldErrors.title}</p>}
+        {fieldErrors.title && (
+          <p id={errorId(titleId)} role="alert" className="teacher-field-error">
+            {fieldErrors.title}
+          </p>
+        )}
       </div>
 
       <div className="teacher-field">
         <label htmlFor={rationaleId}>Rationale</label>
         <textarea
-          id={rationaleId}
+          {...fieldProps(rationaleId, fieldErrors.rationale)}
           rows={3}
           value={rationale}
           onChange={(event) => setRationale(event.target.value)}
-          aria-invalid={fieldErrors.rationale ? true : undefined}
         />
-        {fieldErrors.rationale && <p className="teacher-field-error">{fieldErrors.rationale}</p>}
+        {fieldErrors.rationale && (
+          <p id={errorId(rationaleId)} role="alert" className="teacher-field-error">
+            {fieldErrors.rationale}
+          </p>
+        )}
       </div>
 
       <div className="teacher-field">
         <label htmlFor={stepsId}>Steps (one per line)</label>
         <textarea
-          id={stepsId}
+          {...fieldProps(stepsId, fieldErrors.items)}
           rows={4}
           value={steps}
           onChange={(event) => setSteps(event.target.value)}
-          aria-invalid={fieldErrors.items ? true : undefined}
         />
-        {fieldErrors.items && <p className="teacher-field-error">{fieldErrors.items}</p>}
+        {fieldErrors.items && (
+          <p id={errorId(stepsId)} role="alert" className="teacher-field-error">
+            {fieldErrors.items}
+          </p>
+        )}
       </div>
 
       <div className="teacher-form-actions">

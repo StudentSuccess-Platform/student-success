@@ -246,7 +246,7 @@ describe('RemediationPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Save plan' }))
 
     expect(await screen.findByText('Title is too long')).toBeInTheDocument()
-    expect(screen.getByRole('alert')).toHaveTextContent('Please fix the highlighted fields')
+    expect(screen.getByText('Please fix the highlighted fields')).toHaveAttribute('role', 'alert')
   })
 
   it('offers a class select with several classes and generates for the chosen one', async () => {
