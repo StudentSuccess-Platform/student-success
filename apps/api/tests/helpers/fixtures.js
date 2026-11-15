@@ -72,13 +72,14 @@ export async function createSchool() {
 }
 
 // Adds a remediation plan for a student. Only a published plan may be visible to families.
-export async function addPlan({ school, student, status, title }) {
+export async function addPlan({ school, student, status, title, rationale = "Use regular guided practice to strengthen this skill." }) {
   const reviewed = status === "published" || status === "approved";
   const plan = await RemediationPlan.create({
     student: student._id,
     section: school.section._id,
     teacher: school.teacher._id,
     title,
+    rationale,
     status,
     ...(reviewed ? { reviewedBy: school.teacher._id, reviewedAt: new Date() } : {}),
     ...(status === "published" ? { publishedAt: new Date() } : {}),

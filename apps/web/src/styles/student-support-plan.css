@@ -1,0 +1,101 @@
+.student-support-plan {
+  width: 100%;
+  padding: 24px;
+}
+
+.student-support-plan .page-header {
+  margin-bottom: 24px;
+}
+
+.student-support-plan__goal {
+  margin: 0;
+  color: #142944;
+  font-size: 1.15rem;
+}
+
+.student-support-plan__teacher,
+.student-support-plan__progress {
+  color: #5e6c84;
+}
+
+.student-support-plan__sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.student-support-plan__bar {
+  display: block;
+  width: 100%;
+  height: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  appearance: none;
+  background: #e6eaf0;
+}
+
+.student-support-plan__bar::-webkit-progress-bar {
+  border-radius: 999px;
+  background: #e6eaf0;
+}
+
+.student-support-plan__bar::-webkit-progress-value {
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.student-support-plan__bar::-moz-progress-bar {
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.student-support-plan__activities,
+.student-support-plan__recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.student-support-plan__activity {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  color: #142944;
+}
+
+.student-support-plan__activity p {
+  margin: 4px 0 0;
+  color: #5e6c84;
+}
+
+.student-support-plan__status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: #eef2f7;
+  color: #42526e;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.student-support-plan__status--done {
+  background: #e3fcef;
+  color: #216e4e;
+}
+
+.student-support-plan__status--in_progress {
+  background: #deebff;
+  color: #0747a6;
+}
+
+@media (max-width: 760px) {
+  .student-support-plan__sections {
+    grid-template-columns: 1fr;
+  }
+}
