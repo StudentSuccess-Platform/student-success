@@ -1,6 +1,7 @@
 import {
   generateAIRecommendation,
 } from "../services/ai/recommendation.js";
+import { AiUnavailableError, AiInvalidResponseError } from "../services/ai/aiErrors.js";
 
 export async function generateRecommendations(req, res) {
   try {
@@ -31,6 +32,14 @@ export async function generateRecommendations(req, res) {
       recommendation,
     });
   } catch (error) {
+    if (error instanceof AiUnavailableError || error instanceof AiInvalidResponseError) {
+      return res.status(error.status).json({
+        error: error.message,
+        code: error.code,
+        fallback: "manual",
+      });
+    }
+
     console.error(
       "Error generating AI recommendation:",
       error
