@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import PageHeader from '../../components/common/PageHeader'
 import DashboardCard from '../../components/common/DashboardCard'
+import PageHeader from '../../components/common/PageHeader'
 import { getStudentDashboard } from '../../services/studentApi'
 import { useAuth } from '../../state/AuthContext'
+import '../../styles/student-support-plan.css'
 
 function SupportPlan() {
   const { token } = useAuth()
@@ -35,24 +36,66 @@ function SupportPlan() {
     return <p>You don't currently have an approved support plan.</p>
   }
 
+  const activities = plan.activities ?? []
+  const completedActivities = activities.filter((activity) => activity.status === 'done').length
+  const recommendations = plan.recommendations ?? []
+
   return (
-    <div className="support-plan">
+    <div className="student-support-plan">
       <PageHeader
         title="Support Plan"
-        subtitle="Your teacher-approved academic support plan."
+        subtitle="Your teacher-approved academic support goals and recommendations."
       />
 
-      <DashboardCard title={plan.focus}>
-        {plan.activities.map((activity, index) => (
-          <div key={activity.id}>
-            <span>{index + 1}</span>
-            <div>
-              <strong>{activity.title}</strong>
-              <p>{activity.schedule}</p>
-            </div>
-          </div>
-        ))}
+      <DashboardCard title="Remediation goal">
+        <h3 className="student-support-plan__goal">{plan.goal ?? plan.focus}</h3>
+        {plan.teacher && <p className="student-support-plan__teacher">Recommended by {plan.teacher}</p>}
       </DashboardCard>
+
+      <div className="student-support-plan__sections">
+        <DashboardCard title="Activities">
+          {activities.length ? (
+            <>
+              <p className="student-support-plan__progress">
+                {completedActivities} of {activities.length} activities completed
+              </p>
+              <progress
+                className="student-support-plan__bar"
+                max={activities.length}
+                value={completedActivities}
+                aria-label="Support plan activities completed"
+              />
+              <ol className="student-support-plan__activities">
+                {activities.map((activity) => (
+                  <li key={activity.id} className="student-support-plan__activity">
+                    <div>
+                      <strong>{activity.title}</strong>
+                      {activity.schedule && <p>{activity.schedule}</p>}
+                    </div>
+                    <span className={`student-support-plan__status student-support-plan__status--${activity.status ?? 'todo'}`}>
+                      {(activity.status ?? 'todo').replaceAll('_', ' ')}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </>
+          ) : (
+            <p>No activities have been added to this support plan yet.</p>
+          )}
+        </DashboardCard>
+
+        <DashboardCard title="Support recommendations">
+          {recommendations.length ? (
+            <ul className="student-support-plan__recommendations">
+              {recommendations.map((recommendation, index) => (
+                <li key={`${index}-${recommendation}`}>{recommendation}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No additional recommendations are available.</p>
+          )}
+        </DashboardCard>
+      </div>
     </div>
   )
 }

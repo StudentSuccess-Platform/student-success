@@ -120,6 +120,14 @@ async function loadPublishedPlan(studentId) {
     status: "approved",
     teacher: fullName(plan.teacher?.user),
     focus: plan.title,
-    activities: items.map((i) => ({ id: String(i._id), title: i.title, schedule: i.description ?? "" })),
+    goal: plan.title,
+    recommendations: plan.rationale ? [plan.rationale] : [],
+    activities: items.map((item) => ({
+      id: String(item._id),
+      title: item.title,
+      schedule: item.description ?? "",
+      status: item.status,
+      dueDate: item.dueDate ?? null,
+    })),
   };
 }

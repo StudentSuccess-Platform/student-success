@@ -67,11 +67,19 @@ describe("student and parent views", { skip: uri ? false : "set MONGODB_URI to a
       let body = await (await api("/student/dashboard", ada)).json();
       assert.equal(body.supportPlan, null);
 
-      await addPlan({ school, student: school.adaProfile, status: "published", title: "Strengthen fractions" });
+      await addPlan({
+        school,
+        student: school.adaProfile,
+        status: "published",
+        title: "Strengthen fractions",
+        rationale: "Practice equivalent fractions with visual models.",
+      });
       body = await (await api("/student/dashboard", ada)).json();
       assert.equal(body.supportPlan.focus, "Strengthen fractions");
+      assert.equal(body.supportPlan.goal, "Strengthen fractions");
       assert.equal(body.supportPlan.status, "approved");
       assert.equal(body.supportPlan.teacher, "Tess Teacher");
+      assert.deepEqual(body.supportPlan.recommendations, ["Practice equivalent fractions with visual models."]);
       assert.deepEqual(body.supportPlan.activities.map((a) => [a.title, a.schedule]), [["Practice fractions", "15 minutes daily"]]);
     });
   });

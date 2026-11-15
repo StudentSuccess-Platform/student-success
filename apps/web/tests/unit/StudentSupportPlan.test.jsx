@@ -15,31 +15,43 @@ vi.mock('../../src/services/studentApi', () => ({
   getStudentDashboard,
 }))
 
-const dashboardWithPlan = (supportPlan) => ({
-  supportPlan,
-})
+const supportPlan = {
+  ...studentDashboardData.supportPlan,
+  goal: studentDashboardData.supportPlan.focus,
+  teacher: 'Dr. Maya Chen',
+  recommendations: ['Practice fraction models with a teacher twice each week.'],
+  activities: studentDashboardData.supportPlan.activities.map((activity, index) => ({
+    ...activity,
+    status: index === 0 ? 'done' : 'todo',
+  })),
+}
 
 describe('StudentSupportPlan', () => {
   beforeEach(() => {
     getStudentDashboard.mockReset()
-    getStudentDashboard.mockResolvedValue(
-      dashboardWithPlan(studentDashboardData.supportPlan),
-    )
+    getStudentDashboard.mockResolvedValue({ supportPlan })
   })
 
-  it('fetches the signed-in student dashboard and displays its approved plan', async () => {
+  it('fetches and displays the remediation goal, activity progress, and recommendations', async () => {
     render(<SupportPlan />)
 
-    expect(await screen.findByText('Strengthen fraction skills')).toBeInTheDocument()
+    expect(await screen.findByText('Remediation goal')).toBeInTheDocument()
+    expect(screen.getByText('Strengthen fraction skills')).toBeInTheDocument()
+    expect(screen.getByText('Recommended by Dr. Maya Chen')).toBeInTheDocument()
     expect(getStudentDashboard).toHaveBeenCalledWith('mock-student-token')
 
     for (const activity of studentDashboardData.supportPlan.activities) {
-      expect(await screen.findByText(activity.title)).toBeInTheDocument()
+      expect(screen.getByText(activity.title)).toBeInTheDocument()
     }
+    expect(screen.getByText('1 of 3 activities completed')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'Support plan activities completed' }))
+      .toHaveAttribute('value', '1')
+    expect(screen.getByText('Practice fraction models with a teacher twice each week.'))
+      .toBeInTheDocument()
   })
 
   it('displays a message when no plan exists', async () => {
-    getStudentDashboard.mockResolvedValueOnce(dashboardWithPlan(null))
+    getStudentDashboard.mockResolvedValueOnce({ supportPlan: null })
 
     render(<SupportPlan />)
 
@@ -50,10 +62,10 @@ describe('StudentSupportPlan', () => {
 
   it('hides plans awaiting teacher approval', async () => {
     getStudentDashboard.mockResolvedValueOnce(
-      dashboardWithPlan({
-        ...studentDashboardData.supportPlan,
+      { supportPlan: {
+        ...supportPlan,
         status: 'pending_review',
-      }),
+      } },
     )
 
     render(<SupportPlan />)
