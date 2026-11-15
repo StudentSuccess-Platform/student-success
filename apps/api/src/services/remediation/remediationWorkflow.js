@@ -30,6 +30,7 @@ export function toPlanJson(plan, items, section) {
     rationale: plan.rationale ?? null,
     status: plan.status,
     source: plan.source,
+    version: plan.version ?? 0,
     items: items.map((item) => ({
       id: String(item._id),
       title: item.title,
@@ -75,16 +76,30 @@ async function findPlan(access, planId) {
   return plan;
 }
 
-// One conditional write. The plan must still be in an allowed source state and still belong to the
-// student; if a racing request changed it first the update matches nothing and the caller gets 409.
-async function transitionPlan(access, planId, fromStatuses, update, conflictMessage) {
+// One conditional write. The plan must still be in an allowed source state, still belong to the
+// student and, when `version` is given, still be at that version; if a racing request changed it first
+// the update matches nothing and the caller gets 409. Every success increments the version.
+async function transitionPlan(access, planId, fromStatuses, update, conflictMessage, version) {
+  const filter = { _id: planId, student: access.student._id, status: { $in: fromStatuses } };
+  // Plans saved before the field existed have no version, which counts as 0 (null also matches a missing field).
+  if (version !== undefined) filter.version = version === 0 ? { $in: [0, null] } : version;
   const plan = await RemediationPlan.findOneAndUpdate(
-    { _id: planId, student: access.student._id, status: { $in: fromStatuses } },
-    update,
+    filter,
+    { ...update, $inc: { version: 1 } },
     { new: true, runValidators: true },
   );
   if (!plan) throw httpError(409, conflictMessage);
   return plan;
+}
+
+// A client may send the version it last saw. A different value means someone else changed the plan.
+function clientVersion(body) {
+  const raw = body?.version;
+  if (raw === undefined || raw === null) return undefined;
+  if (!Number.isInteger(raw) || raw < 0) {
+    throw httpError(400, "Please fix the highlighted fields", { fields: { version: "Must be a whole number" } });
+  }
+  return raw;
 }
 
 // Validates a create or edit body. Returns { data, fields }; data holds only the values to apply.
@@ -149,9 +164,9 @@ function itemDocs(planId, items) {
   }));
 }
 
-// Replaces a plan's items. New rows are inserted first, so a failed insert leaves the old items
-// in place; only then are the old rows removed.
-async function replaceItems(planId, items) {
+// Stages replacement items: inserts the new rows next to the old ones. Nothing is removed yet, so a
+// failed insert leaves the plan untouched. Returns the new ids for commit/rollback below.
+async function stageItems(planId, items) {
   const docs = itemDocs(planId, items);
   const newIds = docs.map((doc) => doc._id);
   try {
@@ -160,8 +175,11 @@ async function replaceItems(planId, items) {
     await RemediationItem.deleteMany({ plan: planId, _id: { $in: newIds } });
     throw error;
   }
-  await RemediationItem.deleteMany({ plan: planId, _id: { $nin: newIds } });
+  return newIds;
 }
+
+const rollbackItems = (planId, newIds) => RemediationItem.deleteMany({ plan: planId, _id: { $in: newIds } });
+const commitItems = (planId, newIds) => RemediationItem.deleteMany({ plan: planId, _id: { $nin: newIds } });
 
 // Records the teacher's review on the AI audit log of an AI-sourced plan. `nextOutcome` receives the
 // current outcome and returns the new one.
@@ -230,16 +248,29 @@ export async function editPlan(userId, studentId, planId, input) {
   const update = { $set: set };
   if (Object.keys(unset).length > 0) update.$unset = unset;
 
-  // Title and rationale go first, as one conditional write. If the plan was approved or rejected in
-  // the meantime, this matches nothing, returns 409, and the items below are never touched.
-  const updated = await transitionPlan(access, plan._id, EDITABLE, update, "Plan can no longer be edited");
-
-  // Known residual window: between the write above and the item replacement below, a concurrent
-  // approve/reject/publish can land, so the items of an already-reviewed plan may still be replaced.
-  // Two concurrent item replacements on the same plan can also remove each other's new rows.
-  // Closing this needs a transaction (replica set) or a version field on the plan; both are out of
-  // scope for the MVP. The status guard above keeps every status change itself consistent.
-  if (data.items) await replaceItems(plan._id, data.items);
+  // Optimistic concurrency, no transaction needed:
+  //  1. stage the new items beside the old ones (nothing visible is removed),
+  //  2. commit with ONE conditional write on status AND version (the version the client saw, else the
+  //     one just read). A concurrent edit, approve, reject or publish bumps the version or status, so
+  //     this matches nothing,
+  //  3. on conflict delete the staged rows and answer 409; on success delete the old rows.
+  const expected = clientVersion(input) ?? plan.version ?? 0;
+  const staged = data.items ? await stageItems(plan._id, data.items) : null;
+  let updated;
+  try {
+    updated = await transitionPlan(
+      access,
+      plan._id,
+      EDITABLE,
+      update,
+      "Plan was changed by someone else or can no longer be edited. Reload and try again",
+      expected,
+    );
+  } catch (error) {
+    if (staged) await rollbackItems(plan._id, staged);
+    throw error;
+  }
+  if (staged) await commitItems(plan._id, staged);
 
   await recordAuditReview(updated, access.teacher._id, new Date(), () => "edited");
   return presentPlan(updated);

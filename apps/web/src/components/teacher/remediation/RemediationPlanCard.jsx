@@ -81,6 +81,7 @@ function RemediationPlanCard({ studentId, plan, onChanged }) {
     setIsBusy(true)
     try {
       await editPlan(studentId, plan.id, {
+        version: plan.version, // refused with 409 if someone changed the plan since it was loaded
         title: draft.title.trim(),
         rationale: draft.rationale.trim(),
         items: stepsToItems(draft.steps),

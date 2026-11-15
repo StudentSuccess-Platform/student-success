@@ -19,6 +19,9 @@ const remediationPlanSchema = new Schema(
     reviewedAt: Date,
     publishedAt: Date,
     aiAudit: { type: Schema.Types.ObjectId, ref: "AiAuditLog" },
+    // Optimistic concurrency: every edit or status change increments it, and writes name the
+    // version they read, so a stale write matches nothing and the caller gets 409.
+    version: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true },
 );

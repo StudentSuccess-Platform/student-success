@@ -25,6 +25,7 @@ function makePlan(overrides = {}) {
     rationale: 'Scores dipped in fractions.',
     status: 'draft',
     source: 'teacher',
+    version: 3,
     items: [
       { id: 'i-1', title: 'Watch the video' },
       { id: 'i-2', title: 'Finish practice set' },
@@ -140,6 +141,7 @@ describe('RemediationPlanCard', () => {
     await user.click(screen.getByRole('button', { name: 'Save changes' }))
 
     expect(api.editPlan).toHaveBeenCalledWith('stu-1', 'p-1', {
+      version: 3,
       title: 'Fractions review',
       rationale: 'New reason',
       items: [{ title: 'Step one' }, { title: 'Step two' }],
