@@ -17,6 +17,9 @@ import {
   RemediationItem,
   Goal,
   GoalUpdate,
+  Course,
+  Section,
+  Enrollment,
 } from "../../../src/models/index.js";
 
 const uri = createTestDatabaseUri();
@@ -238,6 +241,29 @@ describe("AI remediation", { skip: uri ? false : "set MONGODB_URI to a MongoDB s
       assert.equal((await post(aiPath("not-an-id"), {}, teacher)).status, 404);
     });
 
+    test("a 12-character non-hex student id is 404, not treated as an ObjectId", async () => {
+      let called = false;
+      setAiGenerator(async () => {
+        called = true;
+        return AI_OUTPUT;
+      });
+      assert.equal((await post(aiPath("abcdefghijkl"), {}, teacher)).status, 404);
+      assert.equal(called, false);
+    });
+
+    test("a model answer whose nextSteps yields no items -> 502 with code and fallback, and writes nothing", async () => {
+      const beforeRows = await counts();
+      setAiGenerator(async () => ({ guidance: "x", goal: "y", nextSteps: ";" }));
+      const res = await post(aiPath(), {}, teacher);
+      assert.equal(res.status, 502);
+      assert.deepEqual(await res.json(), {
+        error: "The AI returned an unusable response. You can create a plan manually.",
+        code: "AI_INVALID_RESPONSE",
+        fallback: "manual",
+      });
+      assert.deepEqual(await counts(), beforeRows);
+    });
+
     test("a student role -> 403 and no call to the AI", async () => {
       let called = false;
       setAiGenerator(async () => {
@@ -277,28 +303,104 @@ describe("AI remediation", { skip: uri ? false : "set MONGODB_URI to a MongoDB s
   });
 
   describe("legacy POST /teacher/recommendations", () => {
-    const legacyBody = { studentId: "S-1", grades: [{ title: "Unit Test", pointsEarned: 95 }] };
+    const legacyBody = () => ({ studentId: String(school.adaProfile._id), sectionId: String(school.section._id) });
 
-    test("still returns 200 with a recommendation through the hardened service", async () => {
+    test("returns 200 with a recommendation through the hardened service, and persists nothing", async () => {
       setAiGenerator(async () => AI_OUTPUT);
-      const res = await post("/recommendations", legacyBody, teacher);
+      const beforeRows = await counts();
+      const res = await post("/recommendations", legacyBody(), teacher);
       assert.equal(res.status, 200);
       assert.deepEqual(await res.json(), { recommendation: AI_OUTPUT });
+      assert.deepEqual(await counts(), beforeRows);
+    });
+
+    test("uses the lowest-period class when sectionId is omitted", async () => {
+      // A period-1 class with no assignments. Algebra (period 2) has the unit test, so if it were chosen
+      // the prompt would contain grade rows. Ties at period 1 are broken by id; both candidates are empty.
+      const course = await Course.create({ code: "MAT0", title: "Math Lab", subject: "Mathematics", gradeLevel: 9 });
+      const lab = await Section.create({ course: course._id, teacher: school.teacher._id, term: "2025-Fall", period: 1 });
+      await Enrollment.create({ section: lab._id, student: school.adaProfile._id });
+      let prompt;
+      setAiGenerator(async (p) => {
+        prompt = p;
+        return AI_OUTPUT;
+      });
+      const res = await post("/recommendations", { studentId: String(school.adaProfile._id) }, teacher);
+      assert.equal(res.status, 200);
+      assert.ok(prompt, "the generator was called");
+      assert.match(prompt.input, /Grades:\s+\[\]/);
+      assert.doesNotMatch(prompt.input, /Unit Test/);
+    });
+
+    test("ignores client-sent grades, attendance, goal and progress; the prompt is built from the database", async () => {
+      let prompt;
+      setAiGenerator(async (p) => {
+        prompt = p;
+        return AI_OUTPUT;
+      });
+      const res = await post(
+        "/recommendations",
+        {
+          ...legacyBody(),
+          grades: [{ title: "CLIENT-GRADE-XYZ", pointsEarned: 0, pointsPossible: 100 }],
+          attendance: { present: 999, absent: 0 },
+          goal: "CLIENT-GOAL-XYZ",
+          progress: 3,
+        },
+        teacher,
+      );
+      assert.equal(res.status, 200);
+      const sent = `${prompt.instructions}\n${prompt.input}`;
+      for (const secret of ["CLIENT-GRADE-XYZ", "CLIENT-GOAL-XYZ", "999"]) {
+        assert.equal(sent.includes(secret), false, `prompt must not contain ${secret}`);
+      }
+      assert.match(prompt.input, /Unit Test/);
+      assert.match(prompt.input, /Keep an A/);
+      assert.match(prompt.input, /"present":1/);
+    });
+
+    test("a missing studentId -> 400 naming the field, and no AI call", async () => {
+      let called = false;
+      setAiGenerator(async () => {
+        called = true;
+        return AI_OUTPUT;
+      });
+      const res = await post("/recommendations", { grades: [] }, teacher);
+      assert.equal(res.status, 400);
+      assert.deepEqual(await res.json(), { error: "Please fix the highlighted fields", fields: { studentId: "Required" } });
+      assert.equal(called, false);
+    });
+
+    test("a student not assigned to this teacher -> 404 and no AI call", async () => {
+      let called = false;
+      setAiGenerator(async () => {
+        called = true;
+        return AI_OUTPUT;
+      });
+      // Ben is taught only by this teacher. (Ada is enrolled in a class of the other teacher by an earlier test.)
+      const benBody = { studentId: String(school.benProfile._id), sectionId: String(school.section._id) };
+      assert.equal((await post("/recommendations", benBody, otherTeacher)).status, 404);
+      assert.equal(called, false);
     });
 
     test("returns 503 with the controlled body when the AI is unavailable", async () => {
       setAiGenerator(async () => {
         throw new AiUnavailableError();
       });
-      const res = await post("/recommendations", legacyBody, teacher);
+      const res = await post("/recommendations", legacyBody(), teacher);
       assert.equal(res.status, 503);
       const body = await res.json();
       assert.equal(body.code, "AI_UNAVAILABLE");
       assert.equal(body.fallback, "manual");
     });
 
-    test("keeps the 400 for missing data", async () => {
-      assert.equal((await post("/recommendations", { studentId: "S-1" }, teacher)).status, 400);
+    test("returns 502 AI_INVALID_RESPONSE for schema-invalid model output", async () => {
+      setAiGenerator(async () => ({ guidance: "Only guidance" }));
+      const res = await post("/recommendations", legacyBody(), teacher);
+      assert.equal(res.status, 502);
+      const body = await res.json();
+      assert.equal(body.code, "AI_INVALID_RESPONSE");
+      assert.equal(body.fallback, "manual");
     });
   });
 });

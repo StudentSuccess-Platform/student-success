@@ -6,7 +6,8 @@ import { attendancePercent, gradePercent, interventionFor, monthlyTrend } from "
 // Assigned-student roster and profile (AC-TEA-01, 02, 06, 07, 15). Every query is batched by
 // section or student ids so the cost does not grow with a per-student loop.
 
-const fullName = (profile) => `${profile.user.firstName} ${profile.user.lastName}`;
+// A profile whose User document is gone still renders (with a placeholder name) instead of a 500.
+const fullName = (profile) => [profile.user?.firstName, profile.user?.lastName].filter(Boolean).join(" ") || "Unknown student";
 const sectionName = (section) => section?.course?.title ?? "";
 const periodLabel = (section) => (section.period ? `Period ${section.period}` : "");
 const iso = (date) => (date ? new Date(date).toISOString() : null);

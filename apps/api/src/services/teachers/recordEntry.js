@@ -19,6 +19,18 @@ import {
 
 const toIso = (value) => (value ? new Date(value).toISOString() : null);
 
+// Upsert that survives a race. Two identical first writes can both insert and one hits the unique
+// index (E11000). The loser retries once: the row now exists, so the retry is a plain update.
+async function upsertOnce(Model, filter, update, options) {
+  const run = () => Model.findOneAndUpdate(filter, update, options).lean();
+  try {
+    return await run();
+  } catch (error) {
+    if (error?.code !== 11000) throw error;
+    return run();
+  }
+}
+
 export async function saveGrade(userId, studentId, payload) {
   const access = await getAssignedStudent(userId, studentId);
   const input = validateGrade(payload);
@@ -41,11 +53,12 @@ export async function saveGrade(userId, studentId, payload) {
   if (input.pointsEarned === null) update.$unset = { pointsEarned: "" };
   else update.$set.pointsEarned = input.pointsEarned;
 
-  const grade = await Grade.findOneAndUpdate(
+  const grade = await upsertOnce(
+    Grade,
     { assignment: assignment._id, student: access.student._id },
     update,
     { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
-  ).lean();
+  );
 
   return {
     grade: {
@@ -63,11 +76,12 @@ export async function saveAttendance(userId, studentId, payload) {
   const date = dateAtNoon(input.date);
 
   // One row per student, class and day: a second entry for the same day replaces the first.
-  const record = await Attendance.findOneAndUpdate(
+  const record = await upsertOnce(
+    Attendance,
     { section: sectionId, student: access.student._id, date },
     { $set: { status: input.status } },
     { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
-  ).lean();
+  );
 
   return {
     attendance: {

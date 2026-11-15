@@ -42,6 +42,8 @@ describe("assigned-student access", { skip: uri ? false : "set MONGODB_URI to a 
   test("denies another teacher, a malformed id, and a teacher with no profile", async () => {
     await assert.rejects(getAssignedStudent(otherTeacherUser._id, school.adaProfile._id), { status: 404 });
     await assert.rejects(getAssignedStudent(teacherUserId(), "not-an-id"), { status: 404 });
+    // 12 characters pass mongoose.isValidObjectId but are not a real id.
+    await assert.rejects(getAssignedStudent(teacherUserId(), "abcdefghijkl"), { status: 404 });
     await assert.rejects(getAssignedStudent(school.ada._id, school.adaProfile._id), { status: 404 });
   });
 

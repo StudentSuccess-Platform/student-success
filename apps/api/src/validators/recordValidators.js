@@ -9,6 +9,11 @@ export const ATTENDANCE_STATUSES = ["present", "absent", "tardy", "excused"];
 export const GOAL_STATUSES = ["active", "achieved", "abandoned"];
 
 const MESSAGE = "Please fix the highlighted fields";
+
+// Size caps shared by the record and remediation validators. Lengths are counted after trimming.
+export const LIMITS = { title: 200, text: 5000, items: 50 };
+export const lengthMessage = (max) => `Must be ${max} characters or fewer`;
+export const isTooLong = (value, max) => typeof value === "string" && value.trim().length > max;
 const OBJECT_ID = /^[a-f\d]{24}$/i;
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -43,14 +48,18 @@ function fail(fields) {
   if (Object.keys(fields).length > 0) throw httpError(400, MESSAGE, { fields });
 }
 
-// Required text: a non-empty string after trimming.
-function requiredText(fields, name, value) {
+// Required text: a non-empty string after trimming, no longer than `max` characters when given.
+function requiredText(fields, name, value, max) {
   if (isBlank(value)) {
     fields[name] = "Required";
     return null;
   }
   if (typeof value !== "string") {
     fields[name] = "Must be text";
+    return null;
+  }
+  if (max && isTooLong(value, max)) {
+    fields[name] = lengthMessage(max);
     return null;
   }
   return value.trim();
@@ -134,8 +143,8 @@ export function validateAttendance(body = {}) {
 // POST /goals. sectionId is optional (a goal may be tied to one class).
 export function validateGoal(body = {}) {
   const fields = {};
-  const title = requiredText(fields, "title", body.title);
-  const description = optionalText(fields, "description", body.description);
+  const title = requiredText(fields, "title", body.title, LIMITS.title);
+  const description = optionalText(fields, "description", body.description, LIMITS.text);
   const targetDate = optionalTargetDate(fields, body.targetDate);
   const sectionId = isBlank(body.sectionId) ? null : objectIdField(fields, "sectionId", body.sectionId, "Invalid class");
 
@@ -147,8 +156,8 @@ export function validateGoal(body = {}) {
 export function validateGoalPatch(body = {}) {
   const fields = {};
   const patch = {};
-  if (body.title !== undefined) patch.title = requiredText(fields, "title", body.title);
-  if (body.description !== undefined) patch.description = optionalText(fields, "description", body.description);
+  if (body.title !== undefined) patch.title = requiredText(fields, "title", body.title, LIMITS.title);
+  if (body.description !== undefined) patch.description = optionalText(fields, "description", body.description, LIMITS.text);
   if (body.targetDate !== undefined) patch.targetDate = optionalTargetDate(fields, body.targetDate);
   if (body.status !== undefined) patch.status = enumField(fields, "status", body.status, GOAL_STATUSES);
 
@@ -159,7 +168,7 @@ export function validateGoalPatch(body = {}) {
 // POST /goals/:goalId/updates. progressPercent is a whole number from 0 to 100.
 export function validateGoalUpdate(body = {}) {
   const fields = {};
-  const note = requiredText(fields, "note", body.note);
+  const note = requiredText(fields, "note", body.note, LIMITS.text);
 
   let progressPercent = null;
   if (isBlank(body.progressPercent)) {
@@ -178,7 +187,7 @@ export function validateGoalUpdate(body = {}) {
 export function validateFeedback(body = {}) {
   const fields = {};
   const sectionId = objectIdField(fields, "sectionId", body.sectionId, "Invalid class");
-  const feedbackBody = requiredText(fields, "body", body.body);
+  const feedbackBody = requiredText(fields, "body", body.body, LIMITS.text);
   const assignmentId = isBlank(body.assignmentId) ? null : objectIdField(fields, "assignmentId", body.assignmentId, "Invalid assignment");
 
   fail(fields);
@@ -188,17 +197,21 @@ export function validateFeedback(body = {}) {
 // PUT /feedback/:feedbackId. Only the text can change.
 export function validateFeedbackBody(body = {}) {
   const fields = {};
-  const feedbackBody = requiredText(fields, "body", body.body);
+  const feedbackBody = requiredText(fields, "body", body.body, LIMITS.text);
 
   fail(fields);
   return { body: feedbackBody };
 }
 
 // Optional text: absent or null becomes undefined; any other value must be a string (trimmed, may be empty).
-function optionalText(fields, name, value) {
+function optionalText(fields, name, value, max) {
   if (value === undefined || value === null) return undefined;
   if (typeof value !== "string") {
     fields[name] = "Must be text";
+    return undefined;
+  }
+  if (max && isTooLong(value, max)) {
+    fields[name] = lengthMessage(max);
     return undefined;
   }
   return value.trim();

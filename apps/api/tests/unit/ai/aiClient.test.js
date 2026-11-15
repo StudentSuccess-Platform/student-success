@@ -173,6 +173,36 @@ describe("createAiClient", () => {
     await rejectsWith(client.generate(prompt), AiUnavailableError);
   });
 
+  test("openai timeout (AI_TIMEOUT_MS) aborts a call that never resolves and is unavailable", async () => {
+    // Like the real SDK, the fake create() rejects when the request signal aborts and never resolves otherwise.
+    let receivedSignal;
+    const client = createAiClient({
+      env: { LLM_PROVIDER: "openai", LLM_MODEL: "gpt-test", OPENAI_API_KEY: "test-key", AI_TIMEOUT_MS: "20" },
+      openaiFactory: () => ({
+        responses: {
+          create: (params, options) => {
+            receivedSignal = options.signal;
+            return new Promise((_resolve, reject) => {
+              options.signal.addEventListener("abort", () => reject(options.signal.reason));
+            });
+          },
+        },
+      }),
+    });
+    // The abort timer is unref'd, so keep the event loop alive until the request settles.
+    const keepAlive = setTimeout(() => {}, 2000);
+    try {
+      await assert.rejects(client.generate(prompt), (error) => {
+        assert.ok(error instanceof AiUnavailableError);
+        assert.equal(error.code, "AI_UNAVAILABLE");
+        return true;
+      });
+      assert.equal(receivedSignal.aborted, true, "the request signal was aborted by the timeout");
+    } finally {
+      clearTimeout(keepAlive);
+    }
+  });
+
   test("ollama timeout (AI_TIMEOUT_MS) aborts the request and is unavailable", async () => {
     const fetchImpl = (url, { signal }) =>
       new Promise((resolve, reject) => {

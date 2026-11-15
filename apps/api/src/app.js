@@ -70,15 +70,21 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
-app.use((err, req, res, next) => {
+// Global error handler. Errors with an explicit status (httpError, body-parser 400s) keep their message
+// and `extra`. Anything else is a bug or an outage: the real error is logged, the client gets a generic 500.
+export function errorHandler(err, req, res, next) {
   console.error(err);
 
+  if (!err?.status) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+
   // `extra` (see utils/httpError.js) carries machine-readable details such as { fields } or { code }.
-  res.status(err.status || 500).json({
+  return res.status(err.status).json({
     ...(err.extra ?? {}),
-    error: err.message || "Internal server error"
+    error: err.message || "Request failed"
   });
-});
+}
+app.use(errorHandler);
 
 export default app;

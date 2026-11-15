@@ -15,7 +15,7 @@ import { httpError } from "../../utils/httpError.js";
 // student who is not assigned to this teacher. 404 (not 403) so other students' ids cannot be probed.
 export async function getAssignedStudent(userId, studentId) {
   const teacher = await requireTeacherProfile(userId);
-  if (!teacher || !mongoose.isValidObjectId(studentId)) throw httpError(404, "Student not found");
+  if (!teacher || !mongoose.isObjectIdOrHexString(studentId)) throw httpError(404, "Student not found");
 
   const sections = await Section.find({ teacher: teacher._id }).select("_id").lean();
   const enrollments = await Enrollment.find({
@@ -29,6 +29,19 @@ export async function getAssignedStudent(userId, studentId) {
   if (!student) throw httpError(404, "Student not found");
 
   return { teacher, student, sectionIds: enrollments.map((e) => e.section) };
+}
+
+// Default class for an AI request: the student's section with the lowest period (ties by id). Null
+// periods sort last. A client sectionId, when given, must be one of the student's classes.
+export async function chooseStudentSection(access, sectionId) {
+  if (sectionId !== undefined && sectionId !== null && sectionId !== "") {
+    return requireStudentSection(access, sectionId);
+  }
+  const sections = await Section.find({ _id: { $in: access.sectionIds } }).select("period").lean();
+  const rank = (s) => s.period ?? Number.MAX_SAFE_INTEGER;
+  sections.sort((a, b) => rank(a) - rank(b) || String(a._id).localeCompare(String(b._id)));
+  if (sections.length === 0) throw httpError(404, "Student not found");
+  return sections[0]._id;
 }
 
 // Confirms a sectionId from a request body is one of the sections returned by getAssignedStudent.
