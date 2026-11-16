@@ -10,6 +10,7 @@ import { AiUnavailableError, AiInvalidResponseError } from "./aiErrors.js";
 
 export const PROMPT_VERSION = "v1";
 const DEFAULT_TIMEOUT_MS = 15000;
+export const OLLAMA_TEMPERATURE = 0.2; // the value used when benchmarking local models (2026-11-16)
 
 export const RECOMMENDATION_SCHEMA = {
   type: "object",
@@ -141,6 +142,7 @@ function createOllamaClient({ env, fetchImpl }) {
           body: JSON.stringify({
             model,
             stream: false,
+            options: { temperature: OLLAMA_TEMPERATURE }, // low and steady: advice should not vary wildly between runs
             format: RECOMMENDATION_SCHEMA, // Ollama accepts a JSON schema here, which keeps small models on shape
             messages: [
               { role: "system", content: instructions },

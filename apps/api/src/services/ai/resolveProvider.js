@@ -8,7 +8,7 @@
 const OPENAI_MODELS_URL = "https://api.openai.com/v1/models";
 const PROBE_TIMEOUT_MS = 5000;
 export const DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434";
-export const DEFAULT_OLLAMA_MODEL = "qwen2.5:0.5b";
+export const DEFAULT_OLLAMA_MODEL = "gemma3:1b";
 
 async function openAiReachable(env, fetchImpl) {
   try {

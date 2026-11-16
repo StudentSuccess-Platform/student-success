@@ -1,7 +1,7 @@
 # Project memory (shared, keep under 100 lines)
 Short durable facts for humans and AI agents. Update in the same PR as the change (protocol: AGENTS.md).
 Remove entries that stop being true.
-Last updated: 2026-11-15.
+Last updated: 2026-11-16.
 
 ## Product
 - StudentSuccess: academic monitoring and early-intervention web app for teachers, students, parents.
@@ -56,6 +56,7 @@ Last updated: 2026-11-15.
 - AI: provider abstraction done (services/ai/aiClient.js; LLM_PROVIDER openai|ollama|mock, LLM_MODEL, LLM_BASE_URL,
   OPENAI_API_KEY, OLLAMA_MODEL, AI_TIMEOUT_MS). 2026-11-15: server.js calls services/ai/resolveProvider.js at startup:
   openai without key/model or unreachable -> ollama; unset/unknown -> ollama; mock untouched. AI down -> manual fallback.
+  2026-11-16: default Ollama model gemma3:1b (benchmark of 9 models; upgrade qwen3:1.7b), temperature 0.2 sent to Ollama.
   Use LLM_PROVIDER=mock for demos/e2e/CI. Still unverified against a real provider. Fields sent: docs/ai/ai-request-fields.md.
 - Remediation plans carry `version` (+1 per edit/status change); PUT accepts `version` and answers 409 if stale (2026-11-15).
 - Student/parent dashboards return `feedbackHistory` (all shared feedback, newest first) plus latest `teacherFeedback`.

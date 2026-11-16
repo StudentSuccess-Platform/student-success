@@ -22,7 +22,7 @@ No production service is needed for any step below.
    - It auto-detects acceleration (NVIDIA, then AMD ROCm, then CPU-only). Force one with `OLLAMA_ACCEL=cpu|nvidia|amd`.
    - CPU-only machines need nothing extra; use a small model. Ollama splits a model across GPU and CPU automatically when it does not fit in VRAM.
    - Apple Silicon and Intel GPUs cannot be used from Docker: run Ollama on the host, stop the container (both use port 11434), and set `LLM_BASE_URL=http://127.0.0.1:11434`.
-   - Pull a model: `docker compose exec ollama ollama pull qwen2.5:0.5b` (small test model; the real model is not chosen yet), then set `LLM_MODEL` locally.
+   - Pull a model: `docker compose exec ollama ollama pull gemma3:1b` (default; benchmarked 2026-11-16, upgrade option `qwen3:1.7b`), then set `LLM_MODEL` locally.
    - Verify: `curl localhost:11434/api/tags`, and `docker compose exec ollama ollama ps` (PROCESSOR shows GPU/CPU split). Inside compose the API reaches it at `http://ollama:11434`.
    - Tuning (env, optional): `OLLAMA_KEEP_ALIVE`, `OLLAMA_NUM_PARALLEL`, `OLLAMA_MAX_LOADED_MODELS`.
    - Status: NVIDIA and CPU verified. AMD ROCm config validates but is untested.

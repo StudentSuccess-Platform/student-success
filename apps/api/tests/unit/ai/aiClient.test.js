@@ -137,6 +137,7 @@ describe("createAiClient", () => {
     assert.equal(body.model, "llama-test");
     assert.deepEqual(body.format, RECOMMENDATION_SCHEMA);
     assert.equal(body.stream, false);
+    assert.deepEqual(body.options, { temperature: 0.2 });
     assert.deepEqual(body.messages, [
       { role: "system", content: "Be brief." },
       { role: "user", content: "Grades: []" },
