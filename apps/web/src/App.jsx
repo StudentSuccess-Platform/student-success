@@ -15,6 +15,7 @@ import MyClasses from './pages/teacher/MyClasses'
 import ClassDetail from './pages/teacher/ClassDetail'
 import TeacherStudents from './pages/teacher/Students'
 import TeacherStudentProfile from './pages/teacher/StudentProfile'
+import ClassRoster from './pages/teacher/ClassRoster'
 import { teacherNavItems, studentNavItems } from './config/navConfig'
 import avatarPlaceholder from './assets/images/avatar-placeholder.png'
 
@@ -139,6 +140,7 @@ function AppContent() {
         <Route path="dashboard" element={<TeacherDashboard />} />
         <Route path="classes" element={<MyClasses />} />
         <Route path="classes/:classId" element={<ClassDetail />} />
+        <Route path="classes/:classId/roster" element={<ClassRoster />} />
         <Route path="students" element={<TeacherStudents />} />
         <Route path="students/:studentId" element={<TeacherStudentProfile />} />
         <Route path="reports" element={<ComingSoon title="Reports" />} />
