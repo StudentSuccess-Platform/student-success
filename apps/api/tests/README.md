@@ -28,4 +28,6 @@ Three axes:
 Conventions: one file per feature or route group, named `<feature>.test.js` (add `.smoke` only for critical-path tests); use `describe` per feature; new modules just add a folder, and no runner change is needed. Regression is the full suite: every bug fix adds a test in its module.
 
 Database tests (`integration/database`) need a MongoDB server via `MONGODB_URI`. Each test file gets its own throwaway database (`helpers/database.js`: `createTestDatabaseUri` and `dropTestDatabase`), so files run in parallel without touching dev data; see `isolation.test.js` for the pattern to copy. Without `MONGODB_URI` they are skipped. CI provides a MongoDB service.
-Current modules: `system`, `errors`, `config`, `models`, `seed`, `database`, `auth`, `student`.
+Current modules: unit `auth`, `config`, `docs`, `grades`, `models`, `seed`; integration `auth`, `database`, `errors`, `student`, `system`, `teacher`.
+
+Shared helpers in `tests/helpers/` (not run as tests): `server.js` (`startTestServer`, ephemeral port), `database.js` (throwaway test database names and drop), `fixtures.js` (`createSchool`, `signIn`, `addPlan` and other synthetic data builders). `unit/docs` tests read Markdown under `docs/`, not code.

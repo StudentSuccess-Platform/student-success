@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
-export const PLAN_STATUSES = ["draft", "pending_review", "approved", "published", "archived"];
+export const PLAN_STATUSES = ["draft", "pending_review", "approved", "published", "rejected", "archived"];
 
 // AI output is advisory: a plan (AI-suggested or teacher-written) reaches students and
-// parents only after a teacher approves it. Approved and published states require a reviewer.
+// parents only after a teacher approves it. Approved, published and rejected states require a reviewer.
 const remediationPlanSchema = new Schema(
   {
     student: { type: Schema.Types.ObjectId, ref: "StudentProfile", required: true },
@@ -19,14 +19,17 @@ const remediationPlanSchema = new Schema(
     reviewedAt: Date,
     publishedAt: Date,
     aiAudit: { type: Schema.Types.ObjectId, ref: "AiAuditLog" },
+    // Optimistic concurrency: every edit or status change increments it, and writes name the
+    // version they read, so a stale write matches nothing and the caller gets 409.
+    version: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true },
 );
 remediationPlanSchema.index({ student: 1, status: 1 });
 
 remediationPlanSchema.pre("validate", function () {
-  if (["approved", "published"].includes(this.status) && (!this.reviewedBy || !this.reviewedAt)) {
-    this.invalidate("reviewedBy", "A teacher must review a plan before it is approved or published.");
+  if (["approved", "published", "rejected"].includes(this.status) && (!this.reviewedBy || !this.reviewedAt)) {
+    this.invalidate("reviewedBy", "A teacher must review a plan before it is approved, published or rejected.");
   }
   if (this.status === "published" && !this.publishedAt) {
     this.invalidate("publishedAt", "A published plan needs publishedAt.");

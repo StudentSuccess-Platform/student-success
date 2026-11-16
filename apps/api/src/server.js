@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import app from "./app.js";
 import { connectDatabase, disconnectDatabase } from "./config/database.js";
+import { resolveLlmProvider, describeResolution } from "./services/ai/resolveProvider.js";
 
 dotenv.config();
 
@@ -14,6 +15,11 @@ const server = app.listen(PORT, () => {
 // Connect in the background so the API (and its health check) is available even if
 // the database is not ready yet.
 connectDatabase();
+
+// Pick the AI provider in the background: OpenAI when it is configured and reachable, otherwise Ollama.
+resolveLlmProvider()
+  .then((result) => console.log(describeResolution(result)))
+  .catch((error) => console.error("AI provider check failed:", error.message));
 
 const shutdown = () => {
   console.log("Shutting down StudentSuccess API...");

@@ -1,7 +1,14 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
-import { User, TeacherNote, TeacherFeedback, RemediationPlan, ProgressReport } from "../../../src/models/index.js";
+import {
+  User,
+  TeacherNote,
+  TeacherFeedback,
+  RemediationPlan,
+  PLAN_STATUSES,
+  ProgressReport,
+} from "../../../src/models/index.js";
 
 const oid = () => new mongoose.Types.ObjectId();
 // Async validate() runs the pre("validate") hooks that hold the review rules; validateSync() does not.
@@ -42,6 +49,13 @@ describe("teacher review before sharing", () => {
     assert.ok(
       (await errorsOf(new RemediationPlan({ ...plan, status: "published", publishedAt: new Date() }))).includes("reviewedBy"),
     );
+  });
+
+  test("rejected plans require a teacher review and are a known status", async () => {
+    assert.ok(PLAN_STATUSES.includes("rejected"));
+    assert.ok((await errorsOf(new RemediationPlan({ ...plan, status: "rejected" }))).includes("reviewedBy"));
+    const reviewed = { ...plan, status: "rejected", reviewedBy: oid(), reviewedAt: new Date() };
+    assert.deepEqual(await errorsOf(new RemediationPlan(reviewed)), []);
   });
 
   test("a reviewed, published plan is valid", async () => {

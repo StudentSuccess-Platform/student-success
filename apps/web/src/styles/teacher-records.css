@@ -1,0 +1,48 @@
+/* Record entry forms (used inside the profile tabs). Shared form and button classes live in teacher-shared.css. */
+
+.teacher-records-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dash-border);
+}
+
+.teacher-records-group-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dash-heading);
+}
+
+.teacher-records-feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.teacher-records-feedback-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+}
+
+.teacher-records-feedback-meta {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dash-heading);
+}
+
+.teacher-records-feedback-body {
+  margin: 0;
+  font-size: 14px;
+  color: var(--dash-body-text);
+  white-space: pre-line;
+}

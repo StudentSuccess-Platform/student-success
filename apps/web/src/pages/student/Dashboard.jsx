@@ -41,6 +41,9 @@ function Dashboard() {
   if (error) return <p role="alert">{error}</p>
   if (!data) return <p>No student information available.</p>
 
+  // Full history when the API sends it; older responses only carry the latest note.
+  const feedbackItems = data.feedbackHistory ?? (data.teacherFeedback ? [data.teacherFeedback] : [])
+
   return (
     <div className="student-dashboard">
       <header className="dashboard-page-header">
@@ -95,13 +98,15 @@ function Dashboard() {
         </DashboardCard>
 
         <DashboardCard title="Teacher feedback">
-          {data.teacherFeedback ? (
-            <>
-              <p>{data.teacherFeedback.message}</p>
-              <small>
-                {data.teacherFeedback.teacher} · {data.teacherFeedback.date}
-              </small>
-            </>
+          {feedbackItems.length > 0 ? (
+            feedbackItems.map((item, index) => (
+              <div key={item.id ?? index}>
+                <p>{item.message}</p>
+                <small>
+                  {item.teacher} · {item.date}
+                </small>
+              </div>
+            ))
           ) : (
             <p>No teacher feedback available yet.</p>
           )}

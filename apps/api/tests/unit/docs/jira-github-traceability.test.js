@@ -1,13 +1,11 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
+import { REPO_ROOT, readDoc, backtickRepoPaths, assertPathsExist } from "../../helpers/docs.js";
 
-// apps/api/tests/unit/docs/ -> repo root is 5 levels up.
-const repoRoot = path.resolve(fileURLToPath(import.meta.url), "..", "..", "..", "..", "..", "..");
-const docPath = path.join(repoRoot, "docs", "sdlc", "jira-github-traceability.md");
+const docPath = path.join(REPO_ROOT, "docs", "sdlc", "jira-github-traceability.md");
 
 describe("docs/sdlc/jira-github-traceability.md", () => {
   test("doc file exists and is non-empty", () => {
@@ -17,7 +15,7 @@ describe("docs/sdlc/jira-github-traceability.md", () => {
     assert.ok(stats.size > 0, "doc file should not be empty");
   });
 
-  const contents = readFileSync(docPath, "utf8");
+  const contents = readDoc("docs/sdlc/jira-github-traceability.md");
 
   test("has a top-level heading", () => {
     assert.match(contents, /^# .+/m);
@@ -53,17 +51,13 @@ describe("docs/sdlc/jira-github-traceability.md", () => {
   });
 
   test("every backtick-quoted repo path referenced in the doc exists on disk", () => {
-    const pathPattern = /`((?:apps|docs|\.github|packages|infrastructure|scripts)\/[^`]+|README\.md)`/g;
-    const referencedPaths = [...contents.matchAll(pathPattern)].map((m) => m[1]);
+    const referencedPaths = backtickRepoPaths(contents, /`((?:apps|docs|\.github|packages|infrastructure|scripts)\/[^`]+|README\.md)`/g);
 
     // Sanity check: the doc should actually reference at least one real repo path
     // (currently the PR template), otherwise this test would pass vacuously.
     assert.ok(referencedPaths.length > 0, "expected to find at least one backtick-quoted repo path in the doc");
 
-    for (const referencedPath of referencedPaths) {
-      const resolved = path.join(repoRoot, referencedPath);
-      assert.ok(existsSync(resolved), `referenced path "${referencedPath}" does not exist at ${resolved}`);
-    }
+    assertPathsExist(referencedPaths);
   });
 
   test("the SCRUM-<n> ticket-key convention the doc describes is actually being followed", () => {
@@ -73,7 +67,7 @@ describe("docs/sdlc/jira-github-traceability.md", () => {
     // window. Checking the last 5 commits with a strict /^SCRUM-\d+/ anchor broke this
     // test on every PR merged after the first few, even though the convention itself
     // (README.md, PR template) was still being followed.
-    const log = execSync("git log --oneline -n 30", { cwd: repoRoot, encoding: "utf8" });
+    const log = execSync("git log --oneline -n 30", { cwd: REPO_ROOT, encoding: "utf8" });
     const lines = log.trim().split("\n").filter(Boolean);
     assert.ok(lines.length > 0, "expected at least one commit in git log");
     const hasConventionCommit = lines.some((line) => /scrum[-\s]\d+/i.test(line));

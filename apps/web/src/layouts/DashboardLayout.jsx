@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/common/Sidebar'
 import '../styles/dashboard.css'
+import '../styles/teacher-shared.css'
 
 function DashboardLayout({ portalLabel, navItems, user }) {
   return (

@@ -38,6 +38,10 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # Runs on every PR (not only web changes) so a misplaced API or web test is always caught.
+      - name: Check test file layout
+        run: sh scripts/check-test-layout.sh
+
       - uses: actions/setup-node@v4
         if: steps.changes.outputs.run == 'true'
         with:
@@ -84,6 +88,8 @@ jobs:
     env:
       MONGODB_URI: mongodb://localhost:27017/studentsuccess
       JWT_SECRET: ci-only-secret-not-for-production
+      # Deterministic offline AI so the AI recommendation flow can be tested without a real key.
+      LLM_PROVIDER: mock
     steps:
       - uses: actions/checkout@v4
         with:

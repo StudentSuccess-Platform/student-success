@@ -7,6 +7,9 @@ export const PASSWORD = 'Password123!'
 export const ACCOUNTS = {
   teacher: { email: 'carley.beer.2@example.test', name: 'Carley Beer', home: '/teacher/dashboard' },
   student: { email: 'judson.greenfelder.6@example.test', name: 'Judson Greenfelder', home: '/student/dashboard' },
+  sammie: { email: 'sammie.quigley.3@example.test', name: 'Sammie Quigley', home: '/teacher/dashboard' },
+  // Teaches a single class, so some students are NOT on her roster (Carley and Sammie share a roster).
+  cheyenne: { email: 'cheyenne.gutmann.5@example.test', name: 'Cheyenne Gutmann', home: '/teacher/dashboard' },
   parent: { email: 'lorena.schneider.30@example.test', name: 'Lorena Schneider', home: '/parent' },
 }
 

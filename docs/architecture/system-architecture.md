@@ -31,13 +31,13 @@ authorization is a server responsibility, never enforced only by hiding UI eleme
 
 | Component | Responsibility | Status |
 |---|---|---|
-| Web/UI (`apps/web`) | Teacher, Student, and Parent-facing views; calls the REST API; no direct database or AI access | Planned — not yet scaffolded (React, per the tech stack below) |
-| REST API (`apps/api`) | Node.js/Express application; the only boundary between UI and protected services; versioned under `/api/v1` | Implemented (scaffold): `app.js`/`server.js`, `/api/v1` root, `/api/v1/health`, security/parsing middleware (`helmet`, `cors`, `morgan`, JSON body parsing); feature routes not yet built (`src/routes/` is a placeholder) |
-| Authentication / authorization | Enforces who a user is (auth) and which students/records they may touch (RBAC + relationship-based rules: student→self, parent→linked students via `GuardianStudentLink`, teacher→students in their `Section`) | Data model supports it (see §5); middleware not yet implemented (SCRUM-12) |
+| Web/UI (`apps/web`) | Teacher, Student, and Parent-facing views; calls the REST API; no direct database or AI access | Implemented (React 19 + Vite): login, teacher portal (dashboard, classes, students, record entry, remediation), student and parent dashboards |
+| REST API (`apps/api`) | Node.js/Express application; the only boundary between UI and protected services; versioned under `/api/v1` | Implemented: `/api/v1/{auth,teacher,student,parent,health}` (aliases at `/api/...`), security/parsing middleware, central error handler; endpoint list in [endpoints.md](../api/endpoints.md) |
+| Authentication / authorization | Enforces who a user is (auth) and which students/records they may touch (RBAC + relationship-based rules: student→self, parent→linked students via `GuardianStudentLink`, teacher→students in their `Section`) | Implemented: JWT `requireAuth`, `requireRole`, and server-side relationship checks (`services/access/teacherAccess.js` for assigned students; linked-student checks for parents) |
 | MongoDB data layer (`apps/api/src/models`) | Mongoose models for every core entity (User, profiles, Course/Section/Enrollment, Grade, Attendance, TeacherFeedback/TeacherNote, Goal, RemediationPlan, ProgressReport, Notification, Message, AiAuditLog) | Implemented — see [data-model.md](../database/data-model.md) |
 | Synthetic seed data (`apps/api/seed/`) | Deterministic Faker-based seed script, run in dependency order (users → courses → grades → attendance → notes → goals → remediation → reports → communications); `npm run db:check` verifies referential/visibility consistency | Implemented — see [local-database.md](../database/local-database.md) |
-| Reporting / trend services (`apps/api/src/services/{grades,reports,students}`) | Business logic behind grade, attendance, and progress-report views | Directory scaffolded; feature logic not yet implemented |
-| AI/LLM integration (`apps/api/src/services/ai`) | Provider-neutral LLM abstraction behind `LLM_PROVIDER` so features never hard-code a vendor; produces remediation/goal/summary/trend content that is advisory until a teacher approves it (tracked via `AiAuditLog`) | Directory scaffolded; env contract exists (`LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`, optional `OPENAI_API_KEY`/`GEMINI_API_KEY`/`ANTHROPIC_API_KEY`); provider code not yet implemented |
+| Reporting / trend services (`apps/api/src/services/{grades,reports,students}`) | Business logic behind grade, attendance, and progress-report views | Implemented for grades, attendance, student and teacher views (`services/{grades,students,teachers,remediation}`); progress reports Planned |
+| AI/LLM integration (`apps/api/src/services/ai`) | Provider-neutral LLM abstraction behind `LLM_PROVIDER` so features never hard-code a vendor; produces remediation/goal/summary/trend content that is advisory until a teacher approves it (tracked via `AiAuditLog`) | Implemented: `aiClient.js` with `openai`, `ollama` and `mock` providers, a 15 s timeout and a manual fallback on failure; at startup `resolveProvider.js` keeps OpenAI when it is configured and reachable and otherwise uses Ollama. Gemini and Anthropic are not wired. Only the OpenAI path is untested against the real service |
 | Local development infrastructure | Docker Compose for MongoDB and (optionally) Ollama; API runs with `npm run dev` against either | Implemented — see [local-development.md](../../docs/setup/local-development.md) |
 | CI/CD | GitHub Actions workflows for API and Web, plus a deploy skeleton | Implemented for API; Web CI dormant; deploy is a no-op placeholder — see [ci-cd.md](../sdlc/ci-cd.md) |
 
@@ -99,7 +99,7 @@ and visibility rules.
 StudentSuccess/
 ├── apps/
 │   ├── api/            # Node.js/Express backend (implemented scaffold + models + seed)
-│   └── web/             # Frontend (planned; not yet scaffolded)
+│   └── web/             # Frontend (React + Vite)
 ├── packages/
 │   └── shared/          # Shared types/schemas/validation for API + UI (planned)
 ├── infrastructure/       # docker/, database/, deployment/ placeholders
@@ -132,8 +132,8 @@ truth instead of duplicating it. Full ownership and folder-by-folder detail: [RE
 - `/api/v1/health` reports API status plus current database connection state (`connected` / `connecting` /
   `disconnected`); the API starts and keeps serving even if MongoDB is unavailable, so health-checking
   never depends on the database being up.
-- Authentication/authorization will be enforced as Express middleware (not yet implemented — SCRUM-12);
-  unauthorized requests must return an appropriate HTTP status without leaking protected data.
+- Authentication/authorization is enforced as Express middleware and per-request relationship checks;
+  unauthorized requests return 401/403/404 without leaking protected data.
 
 ## 7. Environments and deployment
 

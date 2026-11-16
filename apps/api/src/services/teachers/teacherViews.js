@@ -13,7 +13,8 @@ const EMPTY_DASHBOARD = {
   recentActivity: [],
 };
 
-const fullName = (profile) => `${profile.user.firstName} ${profile.user.lastName}`;
+// A profile whose User document is gone still renders (with a placeholder name) instead of a 500.
+const fullName = (profile) => [profile.user?.firstName, profile.user?.lastName].filter(Boolean).join(" ") || "Unknown student";
 const sectionName = (section) => section.course.title;
 
 // Loads everything one teacher's sections need, in a handful of queries.
@@ -149,7 +150,7 @@ export async function getTeacherClasses(userId) {
 // teachers' classes cannot be probed.
 export async function getTeacherClassDetail(userId, classId) {
   const teacher = await requireTeacherProfile(userId);
-  if (!teacher || !mongoose.isValidObjectId(classId)) throw httpError(404, "Class not found");
+  if (!teacher || !mongoose.isObjectIdOrHexString(classId)) throw httpError(404, "Class not found");
   const { sections, enrollments, attendance, gradeRows } = await loadTeacherData(teacher._id, { _id: classId });
   const section = sections[0];
   if (!section) throw httpError(404, "Class not found");

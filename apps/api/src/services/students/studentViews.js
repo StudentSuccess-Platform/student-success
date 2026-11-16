@@ -68,7 +68,8 @@ export async function getStudentDashboard(student) {
     grades: subjectGrades,
     performanceTrend: monthlyTrend(rows),
     goals,
-    teacherFeedback: feedback,
+    teacherFeedback: feedback[0] ?? null, // latest, kept for existing clients
+    feedbackHistory: feedback, // every shared note, newest first
     supportPlan: plan,
   };
 }
@@ -91,17 +92,18 @@ async function loadGoals(studentId) {
   });
 }
 
+// All shared feedback, newest first. Private notes are a different model and never appear here.
 async function loadFeedback(studentId) {
-  const feedback = await TeacherFeedback.findOne({ student: studentId, visibility: "shared" })
-    .sort({ createdAt: -1 })
+  const feedback = await TeacherFeedback.find({ student: studentId, visibility: "shared" })
+    .sort({ createdAt: -1, _id: -1 })
     .populate({ path: "teacher", populate: { path: "user", select: "firstName lastName" } })
     .lean();
-  if (!feedback) return null;
-  return {
-    teacher: fullName(feedback.teacher?.user),
-    date: new Date(feedback.createdAt).toISOString(),
-    message: feedback.body,
-  };
+  return feedback.map((item) => ({
+    id: String(item._id),
+    teacher: fullName(item.teacher?.user),
+    date: new Date(item.createdAt).toISOString(),
+    message: item.body,
+  }));
 }
 
 // Students and parents see only published plans. The API reports them as status "approved",
