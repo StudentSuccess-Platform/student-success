@@ -71,7 +71,7 @@ To add a module: create `apps/api/seed/modules/<name>.js` (export `name`, `model
 - Feedback, notes and plans are written by the teacher who teaches the section, for an enrolled student.
 - Private notes are `teacher_only`; feedback is `shared`.
 - Approved/published plans and published reports have a teacher review; AI-sourced items have an audit record.
-- Every student has an active guardian link; emails are unique and synthetic.
+- Every student has an active guardian link; emails (when present) are unique and synthetic. The last three seeded students are `invited`: no email and no password, like students a teacher adds to a roster.
 
 ## Reset workflow
 1. `docker compose up -d mongo`
