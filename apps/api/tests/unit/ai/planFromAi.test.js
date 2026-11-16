@@ -39,4 +39,13 @@ describe("planFromAi", () => {
   test("rejects steps that split into nothing", () => {
     assert.throws(() => planFromAi({ ...base, nextSteps: " ;  \n - " }), AiInvalidResponseError);
   });
+
+  test("cuts off JSON debris a small model leaked into the steps", () => {
+    const leaked = '1. Check homework daily.\n2. Review it.\n3. Mark it done in the portal."}\n4. {';
+    assert.deepEqual(splitSteps(leaked), ["Check homework daily.", "Review it.", "Mark it done in the portal."]);
+  });
+
+  test("splits a run-on block of sentences into steps", () => {
+    assert.deepEqual(splitSteps("Review the homework.  Check the portal for deadlines."), ["Review the homework.", "Check the portal for deadlines."]);
+  });
 });
