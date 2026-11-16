@@ -3,6 +3,7 @@ import PageHeader from '../../components/common/PageHeader'
 import DashboardCard from '../../components/common/DashboardCard'
 import StatCard from '../../components/common/StatCard'
 import PerformanceTrendChart from '../../components/common/PerformanceTrendChart'
+import ClassTabs from '../../components/teacher/ClassTabs'
 import InterventionList from '../../components/teacher/InterventionList'
 import ActivityFeed from '../../components/teacher/ActivityFeed'
 import AssignmentsOverview from '../../components/teacher/AssignmentsOverview'
@@ -43,6 +44,8 @@ function ClassOverviewView({ data, isLoading, error }) {
               </Link>
             }
           />
+
+          <ClassTabs classId={data.classInfo.id} />
 
           {data.isDemoData && (
             <p className="demo-data-banner">
@@ -98,8 +101,7 @@ function ClassOverviewView({ data, isLoading, error }) {
           <DashboardCard title="Manage This Class">
             <ul className="class-overview-nav">
               <li className="class-overview-nav-item">
-                Roster
-                <span className="coming-soon-badge">Coming Soon</span>
+                <Link to={`/teacher/classes/${data.classInfo.id}/roster`}>Roster</Link>
               </li>
               <li className="class-overview-nav-item">
                 Gradebook
