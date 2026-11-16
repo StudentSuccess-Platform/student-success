@@ -64,7 +64,7 @@ async function main() {
 
     const data = generateSeedData({ seed: args.seed });
     for (const name of modelNames) {
-      await models[name].init(); // build indexes (unique constraints) before inserting
+      await models[name].syncIndexes(); // build indexes (unique constraints) before inserting; also drops outdated ones
       await models[name].insertMany(data[name]);
       console.log(`  ${name}: ${data[name].length}`);
     }

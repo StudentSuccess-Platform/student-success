@@ -72,9 +72,14 @@ export function validateSeedData(data) {
   });
   const emails = new Set();
   (data.User ?? []).forEach((u) => {
-    if (emails.has(u.email)) problems.push(`User ${idKey(u._id)}: duplicate email ${u.email}`);
-    emails.add(u.email);
-    if (!u.email.endsWith("@example.test") || u.isSynthetic !== true) problems.push(`User ${idKey(u._id)}: not marked synthetic`);
+    if (u.email) {
+      if (emails.has(u.email)) problems.push(`User ${idKey(u._id)}: duplicate email ${u.email}`);
+      emails.add(u.email);
+    } else if (u.status !== "invited" || !u.roles.includes("student")) {
+      problems.push(`User ${idKey(u._id)}: only an invited student may have no email`);
+    }
+    if (u.status === "invited" && u.passwordHash) problems.push(`User ${idKey(u._id)}: an invited user must not have a password`);
+    if ((u.email && !u.email.endsWith("@example.test")) || u.isSynthetic !== true) problems.push(`User ${idKey(u._id)}: not marked synthetic`);
   });
 
   return problems;

@@ -49,6 +49,9 @@ Last updated: 2026-11-16.
 - Teacher portal MVP is BUILT (2026-11-15, branch SCRUM-96-teacher-portal-mvp, design: docs/design/teacher-portal-mvp.md):
   students list + tabbed profile (Overview, Grades, Attendance, Goals & Feedback, Support Plans; ?tab= in the URL),
   grade/attendance/goal/feedback entry, AI + manual remediation with edit/approve/reject/publish.
+  Roster: POST /teacher/classes/:classId/students (2026-11-16) adds a student with no email/login (User.status "invited", email optional,
+  partial unique index email_unique_when_set; run User.syncIndexes() on old DBs); blocks same name+grade (409 POSSIBLE_DUPLICATE).
+  Activation/invite flow for those students is not built. Seed: last 3 students are invited (no email).
   Remaining: class page -> student links, teacher notes UI, edit/delete of past attendance, real-provider AI check.
 - Student portal: support plan shows only published (teacher-approved) plans; all read-only; own data only.
 - Parent portal (HIGH priority): dashboard, linked children, grades, attendance, goals, feedback, approved plan,

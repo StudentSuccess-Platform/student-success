@@ -16,7 +16,15 @@ describe("seed generation", () => {
   });
 
   test("uses only synthetic identities", () => {
-    assert.ok(data.User.every((u) => u.isSynthetic && u.email.endsWith("@example.test")));
+    assert.ok(data.User.every((u) => u.isSynthetic && (!u.email || u.email.endsWith("@example.test"))));
+  });
+
+  test("includes students added to a roster who have no email or password yet", () => {
+    const invited = data.User.filter((u) => u.status === "invited");
+    assert.equal(invited.length, 3);
+    assert.ok(invited.every((u) => !u.email && !u.passwordHash && u.roles.join() === "student"));
+    assert.ok(data.User.filter((u) => u.status !== "invited").every((u) => u.email));
+    assert.ok(data.User.find((u) => u.email === "judson.greenfelder.6@example.test"), "the demo student account keeps its email");
   });
 
   test("generates assignment-level grades and teacher-only notes", () => {
@@ -31,6 +39,12 @@ describe("seed generation", () => {
 
 describe("seed consistency check detects problems", () => {
   const fresh = () => JSON.parse(JSON.stringify(generateSeedData()));
+
+  test("a user with no email who is not an invited student", () => {
+    const d = fresh();
+    delete d.User.find((u) => u.roles.includes("teacher")).email;
+    assert.ok(validateSeedData(d).some((p) => p.includes("only an invited student may have no email")));
+  });
 
   test("dangling reference", () => {
     const d = fresh();
