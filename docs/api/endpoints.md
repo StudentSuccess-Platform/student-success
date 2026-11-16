@@ -37,6 +37,8 @@ register, login, forgot-password and reset-password. Source of truth: `apps/api/
 Validation errors are 400 `{ error, fields: { <name>: "<message>" } }`. Plan JSON: `{ id, studentId, sectionId, className, title, rationale, status, source, version, items: [{ id, title, description }], aiAuditId, createdAt, updatedAt, reviewedAt, publishedAt }`.
 Design and contracts: `docs/design/teacher-portal-mvp.md`.
 
+**Known gaps for the Class Roster tab (SCRUM-144):** `students[]` has no displayable Student ID (`StudentProfile.studentNumber` exists but isn't selected into this response) and no status classification (e.g. Excelled/Stable/Attention). The frontend omits both rather than inventing them. There is also no enrollment-creation route yet, so Add Student (separate story) can't persist anything server-side.
+
 ## Student (`/student`, role student)
 | Method and path | Result |
 |---|---|

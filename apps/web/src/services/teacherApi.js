@@ -10,3 +10,7 @@ export function getDashboard(token) {
 export function getClasses(token) {
   return request('/api/v1/teacher/classes', { token })
 }
+
+export function getClassDetail(classId, token) {
+  return request(`/api/v1/teacher/classes/${classId}`, { token })
+}
