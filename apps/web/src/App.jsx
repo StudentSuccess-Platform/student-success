@@ -13,6 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import TeacherDashboard from './pages/teacher/Dashboard'
 import MyClasses from './pages/teacher/MyClasses'
 import ClassDetail from './pages/teacher/ClassDetail'
+import ClassRoster from './pages/teacher/ClassRoster'
 import { teacherNavItems, studentNavItems } from './config/navConfig'
 import avatarPlaceholder from './assets/images/avatar-placeholder.png'
 
@@ -137,6 +138,7 @@ function AppContent() {
         <Route path="dashboard" element={<TeacherDashboard />} />
         <Route path="classes" element={<MyClasses />} />
         <Route path="classes/:classId" element={<ClassDetail />} />
+        <Route path="classes/:classId/roster" element={<ClassRoster />} />
         <Route path="students" element={<ComingSoon title="Students" />} />
         <Route path="reports" element={<ComingSoon title="Reports" />} />
         <Route path="settings" element={<ComingSoon title="Settings" />} />

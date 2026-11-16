@@ -65,7 +65,7 @@ beforeEach(() => {
 
 function renderView(props) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[`/teacher/classes/${sampleData.classInfo.id}`]}>
       <ClassOverviewView data={null} isLoading={false} error={null} {...props} />
     </MemoryRouter>
   )
@@ -108,7 +108,16 @@ describe('ClassOverviewView', () => {
     expect(
       screen.getByText('12 new submissions for Factoring Worksheet')
     ).toBeInTheDocument()
-    expect(screen.getAllByText('Coming Soon')).toHaveLength(3)
+    expect(screen.getAllByText('Coming Soon')).toHaveLength(2)
+  })
+
+  it('marks the Overview tab active and links Roster to the real roster route (SCRUM-144)', () => {
+    renderView({ data: sampleData })
+
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveClass('is-active')
+    for (const link of screen.getAllByRole('link', { name: 'Roster' })) {
+      expect(link).toHaveAttribute('href', `/teacher/classes/${sampleData.classInfo.id}/roster`)
+    }
   })
 
   it('shows a demo-data banner when the overview content is demonstration data', () => {

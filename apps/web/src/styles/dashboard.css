@@ -461,6 +461,92 @@
   color: var(--dash-body-text);
 }
 
+/* Class detail tab bar (shared by Overview and Roster) */
+
+.class-tabs {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 20px 0 24px;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.class-tabs-item {
+  padding: 0 0 12px;
+  border-bottom: 2px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dash-body-text);
+  text-decoration: none;
+}
+
+.class-tabs-item.is-active {
+  border-bottom-color: var(--dash-orange);
+  color: var(--dash-orange);
+}
+
+.class-tabs-item--disabled {
+  color: var(--dash-muted);
+  cursor: default;
+}
+
+/* Class Roster */
+
+.roster-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.roster-search-input {
+  flex: 1;
+  max-width: 320px;
+  padding: 10px 14px;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--dash-heading);
+}
+
+.roster-sort-button {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dash-heading);
+  cursor: pointer;
+}
+
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.roster-table th {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--dash-border);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--dash-body-text);
+}
+
+.roster-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--dash-border);
+  font-size: 14px;
+  color: var(--dash-heading);
+}
+
+.roster-table tr:last-child td {
+  border-bottom: none;
+}
+
 /* My Classes */
 
 .add-class-button {

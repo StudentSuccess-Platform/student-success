@@ -23,6 +23,8 @@ register, login, forgot-password and reset-password. Source of truth: `apps/api/
 | GET `/teacher/classes/:classId` | `{ class, students: [{ id, name, averageGrade, attendanceRate }], classAverage }`; 404 for another teacher's class |
 | POST `/teacher/recommendations` | AI remediation draft (advisory; teacher review required) |
 
+**Known gaps for the Class Roster tab (SCRUM-144):** `students[]` has no displayable Student ID (`StudentProfile.studentNumber` exists but isn't selected into this response) and no status classification (e.g. Excelled/Stable/Attention). The frontend omits both rather than inventing them. There is also no enrollment-creation route yet, so Add Student (separate story) can't persist anything server-side.
+
 ## Student (`/student`, role student)
 | Method and path | Result |
 |---|---|
