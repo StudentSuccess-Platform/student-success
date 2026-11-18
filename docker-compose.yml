@@ -1,12 +1,29 @@
-# Local development stack.
-#   docker compose up -d            -> mongo + api
-#   docker compose --profile ai up  -> also starts a local Ollama
-# The API does not connect to MongoDB yet (SCRUM-11); mongo is provisioned for it.
+# StudentSuccess, self-contained: one command starts everything, including the local AI.
+#   docker compose up -d --build
+# Then open http://localhost:8080 (sign in with a seeded user, see docs/setup/local-development.md).
+#
+# What starts:
+#   mongo        MongoDB 7
+#   seed         one-shot: loads synthetic demo data when the database is empty (never wipes existing data)
+#   api          the Express API on :3000
+#   ollama       local LLM server (the AI fallback when OpenAI is not configured)
+#   ollama-pull  one-shot: downloads the model into the ollama volume (first start only, ~0.8 GB for gemma3:1b)
+#   web          the React app served by nginx on :8080
+# AI plans work once ollama-pull has finished (`docker compose logs -f ollama-pull`); until then the teacher gets the
+# manual-plan fallback. Everything else works immediately.
+#
+# Every host port and the model can be changed with environment variables (or a .env file next to this file):
+#   WEB_PORT API_PORT MONGO_PORT OLLAMA_PORT  OLLAMA_MODEL  JWT_SECRET  OPENAI_API_KEY (+ LLM_MODEL to use OpenAI)
+#   BIND_ADDRESS (default 127.0.0.1: only this machine can reach the ports; it also avoids a Docker Desktop on Windows
+#   problem where http://localhost hangs because localhost resolves to IPv6. Use 0.0.0.0 to share on your network.)
+# For GPUs see docker-compose.nvidia.yml / docker-compose.amd.yml and scripts/setup/ollama-up.sh.
+name: studentsuccess
+
 services:
   mongo:
     image: mongo:7
     ports:
-      - "27017:27017"
+      - "${BIND_ADDRESS:-127.0.0.1}:${MONGO_PORT:-27017}:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -15,27 +32,53 @@ services:
       timeout: 5s
       retries: 5
 
+  seed:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: seed
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: mongodb://mongo:27017/studentsuccess
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+
   api:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     ports:
-      - "3000:3000"
+      - "${BIND_ADDRESS:-127.0.0.1}:${API_PORT:-3000}:3000"
     environment:
       NODE_ENV: development
       PORT: 3000
       MONGODB_URI: mongodb://mongo:27017/studentsuccess
-      CORS_ORIGIN: http://localhost:5173
-      LLM_PROVIDER: ollama
+      # The browser calls the API from the web app's address.
+      CORS_ORIGIN: http://localhost:${WEB_PORT:-8080}
+      # A local development secret. Set JWT_SECRET to your own value for anything that is shared.
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      # OpenAI is used only when OPENAI_API_KEY and LLM_MODEL are set and OpenAI answers; otherwise the API uses ollama.
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
       LLM_BASE_URL: http://ollama:11434
-      LLM_MODEL: ""
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma3:1b}
     depends_on:
       mongo:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
 
   ollama:
-    profiles: ["ai"]
-    image: ollama/ollama:0.5.12
+    image: ollama/ollama:0.32.12
     ports:
-      - "11434:11434"
+      - "${BIND_ADDRESS:-127.0.0.1}:${OLLAMA_PORT:-11434}:11434"
     environment:
       # Ollama splits a model across GPU and CPU automatically when it does not fit in VRAM.
       OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-5m}
@@ -43,9 +86,34 @@ services:
       OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
     volumes:
       - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 10s
 
-  # web is intentionally not defined yet: the frontend scaffold (apps/web) does
-  # not exist. Add a `web` service here once apps/web has a Vite project.
+  ollama-pull:
+    image: ollama/ollama:0.32.12
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-gemma3:1b}"]
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # The address the browser uses to reach the API (not a container name).
+        VITE_API_URL: http://localhost:${API_PORT:-3000}
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-8080}:80"
+    depends_on:
+      - api
 
 volumes:
   mongo-data:

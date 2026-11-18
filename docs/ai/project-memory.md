@@ -64,6 +64,9 @@ Last updated: 2026-11-16.
 - Remediation plans carry `version` (+1 per edit/status change); PUT accepts `version` and answers 409 if stale (2026-11-15).
 - Student/parent dashboards return `feedbackHistory` (all shared feedback, newest first) plus latest `teacherFeedback`.
 - Misc: teacher-to-student check on legacy /teacher/recommendations; summary.termGoal is null; CORS_ORIGIN not enforced.
+- Docker (2026-11-17): `docker compose up -d --build` is self-contained: mongo, seed (--if-empty, never wipes), api, ollama + ollama-pull
+  (gemma3:1b), web (nginx, http://localhost:8080). Images build from the repo root (apps/api/package-lock.json is stale; root lock is used).
+  Ports bind to 127.0.0.1 (BIND_ADDRESS) because Docker Desktop on Windows hangs on IPv6 localhost.
 - Local gotcha: if Docker Mongo times out on "localhost", use MONGODB_URI=mongodb://127.0.0.1:27017 (IPv6 forwarding).
 
 ## Decisions log

@@ -27,4 +27,4 @@ esac
 
 echo "Ollama acceleration: $accel"
 # shellcheck disable=SC2086
-docker compose $files --profile ai up -d ollama
+docker compose $files up -d ollama

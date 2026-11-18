@@ -9,15 +9,17 @@ import { validateSeedData, loadSeedDataFromDatabase } from "./validate.js";
 //   npm run db:reset                     wipe the seeded collections, then seed
 //   npm run db:seed -- --only grades     seed one or more modules (comma separated)
 //   npm run db:check                     validate consistency of what is in the database
-// Options: --reset  --check  --only a,b  --seed <number>
+// Options: --reset  --check  --if-empty  --only a,b  --seed <number>
+//   --if-empty seeds only when the users collection is empty and otherwise leaves the data alone (first start in Docker)
 
 const LOCAL_HOSTS = ["localhost", "127.0.0.1", "[::1]", "mongo"];
 
 function parseArgs(argv) {
-  const args = { reset: false, check: false, only: [], seed: 42 };
+  const args = { reset: false, check: false, ifEmpty: false, only: [], seed: 42 };
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === "--reset") args.reset = true;
     else if (argv[i] === "--check") args.check = true;
+    else if (argv[i] === "--if-empty") args.ifEmpty = true;
     else if (argv[i] === "--only") args.only = String(argv[++i] ?? "").split(",").filter(Boolean);
     else if (argv[i] === "--seed") args.seed = Number(argv[++i]);
     else throw new Error(`Unknown option: ${argv[i]}`);
@@ -48,6 +50,11 @@ async function main() {
   assertSafeTarget(uri);
 
   if (!(await connectDatabase({ uri, retries: 3 }))) throw new Error("Could not connect to MongoDB.");
+
+  if (args.ifEmpty && (await models.User.estimatedDocumentCount()) > 0) {
+    console.log("The database already has data; leaving it as it is (--if-empty).");
+    return;
+  }
 
   if (!args.check) {
     const selected = selectModules(args.only);

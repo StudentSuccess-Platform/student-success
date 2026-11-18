@@ -2,7 +2,7 @@
 
 | Environment | Purpose | Runs on | Config |
 |---|---|---|---|
-| Local | Development | Developer machine, Docker Compose for MongoDB/Ollama | `.env` from `.env.example` |
+| Local | Development | Developer machine; `docker compose up -d --build` runs the whole app (MongoDB, seed data, API, web, Ollama with `gemma3:1b`) | `.env` from `.env.example` |
 | CI | Automated validation | GitHub Actions runners | workflow `env`, no real secrets |
 | Test/Demo | Shared review and demos | Undecided hosting | GitHub Environment `test` |
 | Production | Final deployment | Undecided hosting | GitHub Environment `production` |
@@ -18,7 +18,7 @@ Inside Docker Compose, use service names: `mongo`, `ollama`.
 Real values are never committed. Local: gitignored `.env`. Deployed: GitHub Environment secrets.
 
 ## LLM engine and acceleration
-Local and self-hosted: Ollama in Docker (`scripts/setup/ollama-up.sh`), on NVIDIA, AMD ROCm or CPU.
+Local and self-hosted: Ollama is part of the default Docker Compose stack (the `ollama-pull` service downloads the model on first start), on NVIDIA, AMD ROCm (`scripts/setup/ollama-up.sh`) or CPU.
 Ollama handles GPU/CPU layer splitting and multi-GPU placement itself. Balancing across separate
 instances (for example a GPU host plus a CPU fallback) belongs in the API's LLM provider abstraction
 (`LLM_PROVIDER`, built). At startup the API keeps `openai` only when `OPENAI_API_KEY` and `LLM_MODEL` are set and
