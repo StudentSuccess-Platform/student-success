@@ -19,12 +19,12 @@ if [ -z "$accel" ]; then
 fi
 
 case "$accel" in
-  nvidia) files="-f docker-compose.yml -f docker-compose.nvidia.yml" ;;
-  amd)    files="-f docker-compose.yml -f docker-compose.amd.yml" ;;
-  cpu)    files="-f docker-compose.yml" ;;
+  nvidia) files="-f docker-compose.yml -f docker-compose.ai.yml -f docker-compose.nvidia.yml" ;;
+  amd)    files="-f docker-compose.yml -f docker-compose.ai.yml -f docker-compose.amd.yml" ;;
+  cpu)    files="-f docker-compose.yml -f docker-compose.ai.yml" ;;
   *) echo "Unknown OLLAMA_ACCEL '$accel' (use cpu, nvidia or amd)" >&2; exit 2 ;;
 esac
 
 echo "Ollama acceleration: $accel"
 # shellcheck disable=SC2086
-docker compose $files --profile ai up -d ollama
+docker compose $files up -d

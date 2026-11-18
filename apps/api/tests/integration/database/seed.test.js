@@ -1,5 +1,7 @@
 import { describe, test, before, after } from "node:test";
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import * as models from "../../../src/models/index.js";
 import { connectDatabase, disconnectDatabase } from "../../../src/config/database.js";
 import { generateSeedData, MODEL_NAMES } from "../../../seed/registry.js";
@@ -49,5 +51,14 @@ describe("database and seed", { skip: uri ? false : "set MONGODB_URI to a MongoD
     const visible = await models.GuardianStudentLink.find({ guardian: link.guardian, active: true }).lean();
     assert.ok(visible.some((l) => String(l.student) === String(link.student)));
     assert.ok(visible.length < (await models.StudentProfile.countDocuments()));
+  });
+
+  test("seed --if-empty leaves a database that already has data alone (first start in Docker)", async () => {
+    const before = await models.User.estimatedDocumentCount();
+    const { stdout } = await promisify(execFile)(process.execPath, ["seed/run.js", "--if-empty"], {
+      env: { ...process.env, MONGODB_URI: uri },
+    });
+    assert.match(stdout, /already has data/);
+    assert.equal(await models.User.estimatedDocumentCount(), before);
   });
 });

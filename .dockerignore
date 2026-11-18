@@ -1,0 +1,12 @@
+# Used by the web image, which builds from the repository root.
+.git
+.github
+**/node_modules
+**/dist
+**/coverage
+**/test-results
+**/playwright-report
+**/.env
+**/.env.*
+!**/.env.example
+local
