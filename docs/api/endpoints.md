@@ -43,11 +43,13 @@ Design and contracts: `docs/design/teacher-portal-mvp.md`.
 | Method and path | Result |
 |---|---|
 | GET `/student/dashboard` | The signed-in student only (identity comes from the token, never the URL): `{ student, summary, grades, performanceTrend, goals, teacherFeedback, feedbackHistory, supportPlan }`. `feedbackHistory` is every shared feedback note, newest first (`{ id, teacher, date, message }`); `teacherFeedback` is the latest one. `supportPlan` is null until a teacher publishes one (reported with `status: "approved"`). `summary.termGoal` is null until goal targets exist. |
+| GET `/student/support-plans` | The signed-in student's published plans only, newest first: `{ plans: [{ id, classId, className, title, rationale, source ("teacher" or "ai"), teacher, publishedAt, active, items: [{ id, title, description, status, dueDate }] }] }`. `active` is true for the newest plan of each class; the rest are earlier plans (clients show active ones first). Drafts, pending, approved, rejected and archived plans are never returned; reviewer, AI audit id and `version` are not included |
 
 ## Parent (`/parent`, role parent)
 | Method and path | Result |
 |---|---|
 | GET `/parent/children` | `{ children: [{ id, name, gradeLevel }] }`, linked students only |
+| GET `/parent/children/:studentId/support-plans` | Same list and shape as `/student/support-plans` for one linked child; 404 if the student is not actively linked |
 | GET `/parent/children/:studentId/dashboard` | Same shape as the student dashboard; 404 if the student is not actively linked |
 
 ## Rules enforced here

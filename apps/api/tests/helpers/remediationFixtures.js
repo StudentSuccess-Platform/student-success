@@ -10,12 +10,14 @@ export async function addRemediationPlan({
   title = "Strengthen fractions",
   source = "teacher",
   aiAudit,
+  section = school.section,
+  publishedAt = new Date(),
   items = [{ title: "Practice fractions", description: "15 minutes daily" }],
 }) {
   const reviewed = ["approved", "published", "rejected"].includes(status);
   const plan = await RemediationPlan.create({
     student: student._id,
-    section: school.section._id,
+    section: section._id,
     teacher: school.teacher._id,
     title,
     rationale: "Use regular guided practice to strengthen this skill.",
@@ -23,7 +25,7 @@ export async function addRemediationPlan({
     source,
     ...(aiAudit ? { aiAudit: aiAudit._id } : {}),
     ...(reviewed ? { reviewedBy: school.teacher._id, reviewedAt: new Date() } : {}),
-    ...(status === "published" ? { publishedAt: new Date() } : {}),
+    ...(status === "published" ? { publishedAt } : {}),
   });
   if (items.length > 0) {
     await RemediationItem.insertMany(items.map((item) => ({ plan: plan._id, ...item })));

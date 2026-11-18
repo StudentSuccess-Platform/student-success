@@ -54,6 +54,8 @@ Last updated: 2026-11-16.
   Activation/invite flow for those students is not built. Seed: last 3 students are invited (no email).
   Remaining: class page -> student links, teacher notes UI, edit/delete of past attendance, real-provider AI check.
 - Student portal: support plan shows only published (teacher-approved) plans; all read-only; own data only.
+  2026-11-17: GET /student/support-plans and GET /parent/children/:id/support-plans list every published plan (class name,
+  publishedAt, `active` = newest per class); the student page shows active plans and hides earlier ones behind a button.
 - Parent portal (HIGH priority): dashboard, linked children, grades, attendance, goals, feedback, approved plan,
   read-only, block unrelated students and unapproved AI content.
 - AI: provider abstraction done (services/ai/aiClient.js; LLM_PROVIDER openai|ollama|mock, LLM_MODEL, LLM_BASE_URL,
