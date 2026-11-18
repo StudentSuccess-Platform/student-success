@@ -1,22 +1,25 @@
-# StudentSuccess, self-contained: one command starts everything, including the local AI.
+# StudentSuccess in Docker: one command starts the app (about 1.6 GB of images).
 #   docker compose up -d --build
 # Then open http://localhost:8080 (sign in with a seeded user, see docs/setup/local-development.md).
 #
 # What starts:
-#   mongo        MongoDB 7
-#   seed         one-shot: loads synthetic demo data when the database is empty (never wipes existing data)
-#   api          the Express API on :3000
-#   ollama       local LLM server (the AI fallback when OpenAI is not configured)
-#   ollama-pull  one-shot: downloads the model into the ollama volume (first start only, ~0.8 GB for gemma3:1b)
-#   web          the React app served by nginx on :8080
-# AI plans work once ollama-pull has finished (`docker compose logs -f ollama-pull`); until then the teacher gets the
-# manual-plan fallback. Everything else works immediately.
+#   mongo   MongoDB 7
+#   seed    one-shot: loads synthetic demo data when the database is empty (never wipes existing data)
+#   api     the Express API on :3000
+#   web     the React app served by nginx on :8080
+#
+# AI plans use a local Ollama (or OpenAI when OPENAI_API_KEY and LLM_MODEL are set and OpenAI answers). Ollama is NOT
+# bundled by default because its image is about 8 GB. Without it, "Generate AI recommendation" falls back to the manual form.
+#   Option 1 (recommended): install Ollama on this machine, run `ollama pull gemma3:1b`. The API reaches it through
+#            host.docker.internal:11434 with no further setup.
+#   Option 2: run Ollama in Docker too (adds the ollama image and downloads the model on first start):
+#            docker compose -f docker-compose.yml -f docker-compose.ai.yml up -d --build
+#            (GPU: add -f docker-compose.nvidia.yml or -f docker-compose.amd.yml, or run sh scripts/setup/ollama-up.sh)
 #
 # Every host port and the model can be changed with environment variables (or a .env file next to this file):
-#   WEB_PORT API_PORT MONGO_PORT OLLAMA_PORT  OLLAMA_MODEL  JWT_SECRET  OPENAI_API_KEY (+ LLM_MODEL to use OpenAI)
+#   WEB_PORT API_PORT MONGO_PORT  OLLAMA_MODEL  LLM_BASE_URL  JWT_SECRET  OPENAI_API_KEY (+ LLM_MODEL to use OpenAI)
 #   BIND_ADDRESS (default 127.0.0.1: only this machine can reach the ports; it also avoids a Docker Desktop on Windows
 #   problem where http://localhost hangs because localhost resolves to IPv6. Use 0.0.0.0 to share on your network.)
-# For GPUs see docker-compose.nvidia.yml / docker-compose.amd.yml and scripts/setup/ollama-up.sh.
 name: studentsuccess
 
 services:
@@ -63,8 +66,11 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-}
-      LLM_BASE_URL: http://ollama:11434
+      # Ollama on this machine by default; docker-compose.ai.yml points it at the ollama container instead.
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma3:1b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Linux; Docker Desktop already provides this name
     depends_on:
       mongo:
         condition: service_healthy
@@ -74,34 +80,6 @@ services:
       timeout: 5s
       retries: 6
       start_period: 10s
-
-  ollama:
-    image: ollama/ollama:0.32.12
-    ports:
-      - "${BIND_ADDRESS:-127.0.0.1}:${OLLAMA_PORT:-11434}:11434"
-    environment:
-      # Ollama splits a model across GPU and CPU automatically when it does not fit in VRAM.
-      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-5m}
-      OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-1}
-      OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
-    volumes:
-      - ollama-data:/root/.ollama
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 10s
-      retries: 6
-      start_period: 10s
-
-  ollama-pull:
-    image: ollama/ollama:0.32.12
-    depends_on:
-      ollama:
-        condition: service_healthy
-    environment:
-      OLLAMA_HOST: http://ollama:11434
-    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-gemma3:1b}"]
-    restart: "no"
 
   web:
     build:
@@ -117,4 +95,3 @@ services:
 
 volumes:
   mongo-data:
-  ollama-data:

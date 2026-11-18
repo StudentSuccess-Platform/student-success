@@ -1,5 +1,5 @@
 # Optional NVIDIA GPU support for Ollama. Requires the NVIDIA container runtime.
-#   docker compose -f docker-compose.yml -f docker-compose.nvidia.yml up -d
+#   docker compose -f docker-compose.yml -f docker-compose.ai.yml -f docker-compose.nvidia.yml up -d
 services:
   ollama:
     deploy:
