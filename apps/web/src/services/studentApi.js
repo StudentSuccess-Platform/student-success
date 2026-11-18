@@ -20,3 +20,17 @@ export async function getStudentDashboard(token) {
 
   return response.json()
 }
+
+// Every published support plan of the signed-in student, newest first. `active` marks the current plan of each class.
+export async function getStudentSupportPlans(token) {
+  const response = await fetch(`${API_URL}/api/v1/student/support-plans`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Unable to load your support plans (${response.status})`)
+  }
+
+  return response.json()
+}
