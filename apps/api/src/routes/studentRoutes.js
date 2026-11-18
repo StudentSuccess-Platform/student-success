@@ -4,6 +4,7 @@ import {
   getStudentAttendance,
   getStudentGrades,
   getStudentProfile,
+  supportPlans,
 } from "../controllers/studentController.js";
 import { requireAuth, requireRole } from "../middleware/requireAuth.js";
 
@@ -14,6 +15,7 @@ router.get("/profile", getStudentProfile);
 router.get("/grades", getStudentGrades);
 router.get("/attendance", getStudentAttendance);
 router.get("/dashboard", dashboard);
+router.get("/support-plans", supportPlans);
 router.get("/me/dashboard", dashboard);
 
 export default router;

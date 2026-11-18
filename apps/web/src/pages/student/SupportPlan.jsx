@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react'
-import DashboardCard from '../../components/common/DashboardCard'
 import PageHeader from '../../components/common/PageHeader'
-import { getStudentDashboard } from '../../services/studentApi'
+import SupportPlanCard from '../../components/student/SupportPlanCard'
+import { getStudentSupportPlans } from '../../services/studentApi'
 import { useAuth } from '../../state/AuthContext'
 import '../../styles/student-support-plan.css'
 
+// The student's teacher-published plans. The current plan of each class is shown first; plans that a newer plan
+// replaced are kept for reference behind "Show earlier plans".
 function SupportPlan() {
   const { token } = useAuth()
-  const [plan, setPlan] = useState(null)
+  const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showEarlier, setShowEarlier] = useState(false)
 
   useEffect(() => {
     let active = true
 
-    getStudentDashboard(token)
-      .then((dashboard) => {
-        if (active) setPlan(dashboard.supportPlan)
+    getStudentSupportPlans(token)
+      .then((result) => {
+        if (active) setPlans(result.plans ?? [])
       })
       .catch((requestError) => {
         if (active) setError(requestError.message)
@@ -32,13 +35,9 @@ function SupportPlan() {
 
   if (loading) return <p>Loading your support plan...</p>
   if (error) return <p role="alert">{error}</p>
-  if (!plan || !['approved', 'published'].includes(plan.status)) {
-    return <p>You don't currently have an approved support plan.</p>
-  }
 
-  const activities = plan.activities ?? []
-  const completedActivities = activities.filter((activity) => activity.status === 'done').length
-  const recommendations = plan.recommendations ?? []
+  const current = plans.filter((plan) => plan.active)
+  const earlier = plans.filter((plan) => !plan.active)
 
   return (
     <div className="student-support-plan">
@@ -47,55 +46,31 @@ function SupportPlan() {
         subtitle="Your teacher-approved academic support goals and recommendations."
       />
 
-      <DashboardCard title="Remediation goal">
-        <h3 className="student-support-plan__goal">{plan.goal ?? plan.focus}</h3>
-        {plan.teacher && <p className="student-support-plan__teacher">Recommended by {plan.teacher}</p>}
-      </DashboardCard>
+      {current.length === 0 && <p>You don't currently have an approved support plan.</p>}
+      {current.map((plan) => (
+        <SupportPlanCard key={plan.id} plan={plan} />
+      ))}
 
-      <div className="student-support-plan__sections">
-        <DashboardCard title="Activities">
-          {activities.length ? (
-            <>
-              <p className="student-support-plan__progress">
-                {completedActivities} of {activities.length} activities completed
-              </p>
-              <progress
-                className="student-support-plan__bar"
-                max={activities.length}
-                value={completedActivities}
-                aria-label="Support plan activities completed"
-              />
-              <ol className="student-support-plan__activities">
-                {activities.map((activity) => (
-                  <li key={activity.id} className="student-support-plan__activity">
-                    <div>
-                      <strong>{activity.title}</strong>
-                      {activity.schedule && <p>{activity.schedule}</p>}
-                    </div>
-                    <span className={`student-support-plan__status student-support-plan__status--${activity.status ?? 'todo'}`}>
-                      {(activity.status ?? 'todo').replaceAll('_', ' ')}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </>
-          ) : (
-            <p>No activities have been added to this support plan yet.</p>
-          )}
-        </DashboardCard>
-
-        <DashboardCard title="Support recommendations">
-          {recommendations.length ? (
-            <ul className="student-support-plan__recommendations">
-              {recommendations.map((recommendation, index) => (
-                <li key={`${index}-${recommendation}`}>{recommendation}</li>
+      {earlier.length > 0 && (
+        <section className="student-support-plan__history">
+          <button
+            type="button"
+            className="student-support-plan__toggle"
+            aria-expanded={showEarlier}
+            aria-controls="earlier-support-plans"
+            onClick={() => setShowEarlier((value) => !value)}
+          >
+            {showEarlier ? 'Hide earlier plans' : `Show earlier plans (${earlier.length})`}
+          </button>
+          {showEarlier && (
+            <div id="earlier-support-plans">
+              {earlier.map((plan) => (
+                <SupportPlanCard key={plan.id} plan={plan} earlier />
               ))}
-            </ul>
-          ) : (
-            <p>No additional recommendations are available.</p>
+            </div>
           )}
-        </DashboardCard>
-      </div>
+        </section>
+      )}
     </div>
   )
 }

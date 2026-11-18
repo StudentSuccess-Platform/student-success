@@ -1,6 +1,7 @@
 import { Attendance, Grade, StudentProfile } from "../models/index.js";
 import { requireStudentProfile } from "../services/access/profiles.js";
 import { getStudentDashboard } from "../services/students/studentViews.js";
+import { listPublishedPlans } from "../services/students/supportPlans.js";
 
 async function findStudentProfile(userId) {
   return StudentProfile.findOne({ user: userId }).populate("user", "firstName lastName email");
@@ -54,4 +55,9 @@ export async function getStudentAttendance(req, res) {
     .sort({ date: -1 });
 
   return res.status(200).json({ attendance });
+}
+
+export async function supportPlans(req, res) {
+  const student = await requireStudentProfile(req.user.id);
+  return res.status(200).json(await listPublishedPlans(student._id));
 }
