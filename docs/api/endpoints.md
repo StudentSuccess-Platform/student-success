@@ -20,6 +20,7 @@ register, login, forgot-password and reset-password. Source of truth: `apps/api/
 |---|---|
 | GET `/teacher/dashboard` | `{ summary, performanceTrend, attendanceOverview, interventions, recentActivity }` (shape in `apps/web/src/pages/teacher/dashboardMockData.js`) |
 | GET `/teacher/classes` | `{ classes: [{ id, name, period, room, studentCount }] }` |
+| POST `/teacher/classes/:classId/students` | Body `{ firstName, lastName, gradeLevel (1-12), email? }`. Creates a student with no login (User status `invited`, email optional) and enrols them: `201 { created: true, student: { id, name, gradeLevel, studentNumber, hasEmail, accountStatus }, class, enrollmentId }`. 400 `fields`; 404 not your class; 409 `fields.email` when the email is taken. Same first name + last name (case-insensitive) + grade level as an existing student: 409 `code: POSSIBLE_DUPLICATE` with `matches: [{ id, name, gradeLevel, studentNumber, alreadyInClass }]`; resend with `existingStudentId` (one of the matches) to enrol that student (200, `created: false`; 409 `ALREADY_ENROLLED`) or `allowDuplicate: true` to create a different child with the same name |
 | GET `/teacher/classes/:classId` | `{ class, students: [{ id, name, averageGrade, attendanceRate }], classAverage }`; 404 for another teacher's class |
 | POST `/teacher/recommendations` | AI remediation draft (advisory; teacher review required). 503 `AI_UNAVAILABLE` / 502 `AI_INVALID_RESPONSE` with `fallback: "manual"` |
 | GET `/teacher/students` | Assigned students only: `{ students: [{ id, name, gradeLevel, classNames, averageGrade, attendanceRate, needsIntervention }] }` |
@@ -36,7 +37,7 @@ register, login, forgot-password and reset-password. Source of truth: `apps/api/
 Validation errors are 400 `{ error, fields: { <name>: "<message>" } }`. Plan JSON: `{ id, studentId, sectionId, className, title, rationale, status, source, version, items: [{ id, title, description }], aiAuditId, createdAt, updatedAt, reviewedAt, publishedAt }`.
 Design and contracts: `docs/design/teacher-portal-mvp.md`.
 
-**Known gaps for the Class Roster tab (SCRUM-144):** `students[]` has no displayable Student ID (`StudentProfile.studentNumber` exists but isn't selected into this response) and no status classification (e.g. Excelled/Stable/Attention). The frontend omits both rather than inventing them. There is also no enrollment-creation route yet, so Add Student (separate story) can't persist anything server-side.
+**Known gaps for the Class Roster tab (SCRUM-144):** `students[]` has no displayable Student ID (`StudentProfile.studentNumber` exists but isn't selected into this response) and no status classification (e.g. Excelled/Stable/Attention). The frontend omits both rather than inventing them. Add Student can now persist through `POST /teacher/classes/:classId/students` (below).
 
 ## Student (`/student`, role student)
 | Method and path | Result |

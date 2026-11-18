@@ -1,6 +1,6 @@
 import express from "express";
 import { generateRecommendations } from "../controllers/teacherController.js";
-import { dashboard, classes, classDetail } from "../controllers/teacherViewsController.js";
+import { dashboard, classes, classDetail, addClassStudent } from "../controllers/teacherViewsController.js";
 import { requireAuth, requireRole } from "../middleware/requireAuth.js";
 import studentsRouter from "./teacher/students.js";
 import recordsRouter from "./teacher/records.js";
@@ -15,6 +15,7 @@ router.use(requireAuth, requireRole("teacher"));
 router.get("/dashboard", dashboard);
 router.get("/classes", classes);
 router.get("/classes/:classId", classDetail);
+router.post("/classes/:classId/students", addClassStudent);
 router.post("/recommendations", generateRecommendations);
 
 // Student-scoped features. Each router file is owned by one workstream (see docs/design/teacher-portal-mvp.md).

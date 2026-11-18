@@ -2,6 +2,11 @@ import bcrypt from "bcryptjs";
 import { slug } from "../context.js";
 
 // Users, role profiles and the parent/guardian-to-student relationships.
+// Students added to a roster by a teacher have no email or password yet (status "invited"), like the students the
+// roster "add student" endpoint creates. These are the last three seeded students, so the fixed demo accounts
+// (e.g. judson.greenfelder.6) keep their emails.
+const INVITED_STUDENT_INDEXES = (count) => [count - 3, count - 2, count - 1];
+
 export default {
   name: "users",
   models: ["User", "TeacherProfile", "StudentProfile", "GuardianProfile", "GuardianStudentLink"],
@@ -51,6 +56,11 @@ export default {
         gradeLevel: 9 + (i % 4),
       };
       data.StudentProfile.push(profile);
+      if (INVITED_STUDENT_INDEXES(counts.students).includes(i)) {
+        delete user.email; // no login yet: they are invited later
+        delete user.passwordHash;
+        user.status = "invited";
+      }
       ctx.ability.set(String(profile._id), faker.number.float({ min: 0.5, max: 1, fractionDigits: 2 }));
     }
 

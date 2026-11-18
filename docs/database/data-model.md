@@ -18,7 +18,7 @@ User (roles: teacher | student | parent | admin)
 
 | Collection | Purpose | Key fields and references |
 |---|---|---|
-| User | identity and role assignment | email (unique), `roles[]`, status, `passwordHash` (reserved for auth, `select: false`), isSynthetic |
+| User | identity and role assignment | email (optional; unique when set), `roles[]`, status (`active`, `disabled`, `invited` = added by a teacher, no login yet), `passwordHash` (reserved for auth, `select: false`), isSynthetic |
 | TeacherProfile | teacher details | user, department, title |
 | StudentProfile | student details | user, studentNumber (unique, synthetic), gradeLevel |
 | GuardianProfile | parent/guardian details | user, phone |
