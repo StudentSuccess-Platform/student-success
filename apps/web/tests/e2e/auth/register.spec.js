@@ -46,8 +46,8 @@ test.describe('create account', () => {
     await fillForm(page, { first: 'Eve', last: 'Parent', email, password: PASSWORD })
     await page.getByRole('button', { name: 'Create account' }).click()
 
-    await expect(page).toHaveURL(/\/parent$/)
+    await expect(page).toHaveURL(/\/parent\/overview$/)
     await page.reload()
-    await expect(page).toHaveURL(/\/parent$/)
+    await expect(page).toHaveURL(/\/parent\/overview$/)
   })
 })

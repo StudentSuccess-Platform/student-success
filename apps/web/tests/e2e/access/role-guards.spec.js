@@ -32,11 +32,11 @@ test.describe('route guards', () => {
 
   test('a parent cannot open the student or teacher portals', async ({ page }) => {
     await signIn(page, ACCOUNTS.parent)
-    await expect(page).toHaveURL(/\/parent$/)
+    await expect(page).toHaveURL(/\/parent\/overview$/)
 
     for (const path of ['/student', '/teacher/dashboard']) {
       await page.goto(path)
-      await expect(page).toHaveURL(/\/parent$/)
+      await expect(page).toHaveURL(/\/parent\/overview$/)
     }
   })
 

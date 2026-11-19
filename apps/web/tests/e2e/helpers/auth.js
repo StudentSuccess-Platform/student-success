@@ -10,7 +10,7 @@ export const ACCOUNTS = {
   sammie: { email: 'sammie.quigley.3@example.test', name: 'Sammie Quigley', home: '/teacher/dashboard' },
   // Teaches a single class, so some students are NOT on her roster (Carley and Sammie share a roster).
   cheyenne: { email: 'cheyenne.gutmann.5@example.test', name: 'Cheyenne Gutmann', home: '/teacher/dashboard' },
-  parent: { email: 'lorena.schneider.30@example.test', name: 'Lorena Schneider', home: '/parent' },
+  parent: { email: 'lorena.schneider.30@example.test', name: 'Lorena Schneider', home: '/parent/overview' },
 }
 
 export async function signIn(page, account, password = PASSWORD) {
