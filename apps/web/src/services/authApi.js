@@ -95,4 +95,3 @@ export function resetPassword({ token, password }) {
     body: { token, password },
   })
 }
-
