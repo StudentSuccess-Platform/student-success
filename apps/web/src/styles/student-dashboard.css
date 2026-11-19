@@ -18,8 +18,10 @@
   margin-bottom: 20px;
 }
 
-/* Grade list */
-.student-dashboard .grade-list {
+/* Grade list — also used by the Parent Dashboard (GradeList is shared), so these rules apply
+   under both wrappers rather than being locked to .student-dashboard. */
+.student-dashboard .grade-list,
+.parent-dashboard .grade-list {
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -27,13 +29,15 @@
 }
 
 /* Individual subject */
-.student-dashboard .grade-item {
+.student-dashboard .grade-item,
+.parent-dashboard .grade-item {
   width: 100%;
   text-align: left;
 }
 
 /* Subject name and score */
-.student-dashboard .grade-item-header {
+.student-dashboard .grade-item-header,
+.parent-dashboard .grade-item-header {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -44,7 +48,8 @@
 }
 
 /* Progress bar background */
-.student-dashboard .grade-progress-track {
+.student-dashboard .grade-progress-track,
+.parent-dashboard .grade-progress-track {
   width: 100%;
   height: 8px;
   background: #e6eaf0;
@@ -53,7 +58,8 @@
 }
 
 /* Progress bar fill */
-.student-dashboard .grade-progress-fill {
+.student-dashboard .grade-progress-fill,
+.parent-dashboard .grade-progress-fill {
   height: 100%;
   background: #2563eb;
   border-radius: 10px;
