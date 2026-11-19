@@ -2,12 +2,11 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import { connectDatabase, getDatabaseStatus } from "./config/database.js";
+import { getDatabaseStatus } from "./config/database.js";
 import authRoutes from "./routes/authRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
 import parentRoutes from "./routes/parentRoutes.js";
-import { httpError } from "./utils/httpError.js";
 
 const app = express();
 
@@ -43,16 +42,11 @@ app.use((req, res, next) => {
   next();
 });
 
-async function requireDatabase(req, res, next) {
-  if (await connectDatabase()) return next();
-  return next(httpError(503, "Database is unavailable", { code: "DATABASE_UNAVAILABLE" }));
-}
-
 // Canonical paths live under /api/v1; the unversioned paths remain as aliases for existing callers.
-app.use(["/api/v1/auth", "/api/auth"], requireDatabase, authRoutes);
-app.use(["/api/v1/teacher", "/api/teacher"], requireDatabase, teacherRoutes);
-app.use(["/api/v1/student", "/api/student"], requireDatabase, studentRoutes);
-app.use(["/api/v1/parent", "/api/parent"], requireDatabase, parentRoutes);
+app.use(["/api/v1/auth", "/api/auth"], authRoutes);
+app.use(["/api/v1/teacher", "/api/teacher"], teacherRoutes);
+app.use(["/api/v1/student", "/api/student"], studentRoutes);
+app.use(["/api/v1/parent", "/api/parent"], parentRoutes);
 
 // API root
 app.get("/api/v1", (req, res) => {

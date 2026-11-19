@@ -7,10 +7,11 @@ import {
   supportPlans,
 } from "../controllers/studentController.js";
 import { requireAuth, requireRole } from "../middleware/requireAuth.js";
+import { requireDatabase } from "../middleware/requireDatabase.js";
 
 const router = express.Router();
 
-router.use(requireAuth, requireRole("student"));
+router.use(requireAuth, requireRole("student"), requireDatabase);
 router.get("/profile", getStudentProfile);
 router.get("/grades", getStudentGrades);
 router.get("/attendance", getStudentAttendance);
