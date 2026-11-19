@@ -17,3 +17,12 @@ export const studentNavItems = [
   { id: 'my-progress', label: 'My Progress', icon: bookOpenIcon, path: '/student/progress' },
   { id: 'support-plan', label: 'Support Plan', icon: settingsIcon, path: '/student/support-plan' },
 ]
+
+// Academic Progress intentionally covers grades/attendance/assignments/feedback in one page
+// (SCRUM-147) rather than as separate nav items — the Figma design has one combined frame, not
+// several. Messages has no backend or ticket yet, so it's left off rather than linking nowhere.
+export const parentNavItems = [
+  { id: 'overview', label: 'Overview', icon: gridIcon, path: '/parent/overview' },
+  { id: 'academic-progress', label: 'Academic Progress', icon: barChartIcon, path: '/parent/academic-progress' },
+  { id: 'support-plan', label: 'Support Plan', icon: settingsIcon, path: '/parent/support-plan' },
+]
