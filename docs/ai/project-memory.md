@@ -68,6 +68,7 @@ Last updated: 2026-11-16.
 - Student/parent dashboards return `feedbackHistory` (all shared feedback, newest first) plus latest `teacherFeedback`.
 - Misc: teacher-to-student check on legacy /teacher/recommendations; summary.termGoal is null; CORS_ORIGIN not enforced.
 - Docker (2026-11-17): `docker compose up -d --build` runs mongo, seed (--if-empty, never wipes), api, web (nginx, http://localhost:8080), ~1.6 GB.
+  Compose API `MONGODB_URI` can be overridden from a gitignored root `.env` or shell; seed still targets local Compose Mongo.
   Ollama is NOT bundled (image ~8 GB): use Ollama on the host (api reaches host.docker.internal:11434) or add docker-compose.ai.yml.
   Images build from the repo root (apps/api/package-lock.json is stale; root lock is used). Ports bind to 127.0.0.1 (BIND_ADDRESS)
   because Docker Desktop on Windows hangs on IPv6 localhost.

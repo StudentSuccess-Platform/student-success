@@ -17,7 +17,7 @@
 #            (GPU: add -f docker-compose.nvidia.yml or -f docker-compose.amd.yml, or run sh scripts/setup/ollama-up.sh)
 #
 # Every host port and the model can be changed with environment variables (or a .env file next to this file):
-#   WEB_PORT API_PORT MONGO_PORT  OLLAMA_MODEL  LLM_BASE_URL  JWT_SECRET  OPENAI_API_KEY (+ LLM_MODEL to use OpenAI)
+#   WEB_PORT API_PORT MONGO_PORT  MONGODB_URI  OLLAMA_MODEL  LLM_BASE_URL  JWT_SECRET  OPENAI_API_KEY (+ LLM_MODEL to use OpenAI)
 #   BIND_ADDRESS (default 127.0.0.1: only this machine can reach the ports; it also avoids a Docker Desktop on Windows
 #   problem where http://localhost hangs because localhost resolves to IPv6. Use 0.0.0.0 to share on your network.)
 name: studentsuccess
@@ -57,7 +57,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
-      MONGODB_URI: mongodb://mongo:27017/studentsuccess
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/studentsuccess}
       # The browser calls the API from the web app's address.
       CORS_ORIGIN: http://localhost:${WEB_PORT:-8080}
       # A local development secret. Set JWT_SECRET to your own value for anything that is shared.
