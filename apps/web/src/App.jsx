@@ -16,12 +16,14 @@ import ClassDetail from './pages/teacher/ClassDetail'
 import TeacherStudents from './pages/teacher/Students'
 import TeacherStudentProfile from './pages/teacher/StudentProfile'
 import ClassRoster from './pages/teacher/ClassRoster'
-import { teacherNavItems, studentNavItems } from './config/navConfig'
+import { teacherNavItems, studentNavItems, parentNavItems } from './config/navConfig'
 import avatarPlaceholder from './assets/images/avatar-placeholder.png'
 
 import StudentDashboard from './pages/student/Dashboard'
 import StudentProgress from './pages/student/Progress'
 import StudentSupportPlan from './pages/student/SupportPlan'
+
+import ParentDashboard from './pages/parent/ParentDashboard'
 
 function AuthFlow() {
   const [authView, setAuthView] = useState('login')
@@ -123,6 +125,24 @@ function StudentPortal() {
   )
 }
 
+function ParentPortal() {
+  const { user } = useAuth()
+
+  const userDisplay = {
+    name: `${user.firstName} ${user.lastName}`,
+    subtitle: 'Parent',
+    avatarUrl: avatarPlaceholder,
+  }
+
+  return (
+    <DashboardLayout
+      portalLabel="Family Workspace"
+      navItems={parentNavItems}
+      user={userDisplay}
+    />
+  )
+}
+
 function AppContent() {
   return (
     <Routes>
@@ -162,13 +182,18 @@ function AppContent() {
       </Route>
 
       <Route
-        path="/parent"
+        path="/parent/*"
         element={
           <ProtectedRoute allowedRoles={['parent']}>
-            <ComingSoon title="Parent Portal" />
+            <ParentPortal />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<Navigate to="overview" replace />} />
+        <Route path="overview" element={<ParentDashboard />} />
+        <Route path="academic-progress" element={<ComingSoon title="Academic Progress" />} />
+        <Route path="support-plan" element={<ComingSoon title="Support Plan" />} />
+      </Route>
     </Routes>
   )
 }
