@@ -14,6 +14,11 @@ Inside Docker Compose, use service names: `mongo`, `ollama`.
 
 `CORS_ORIGIN` is defined but not yet read by the API (currently unrestricted `cors()`).
 
+On Vercel, API requests wait for MongoDB before accessing database-backed routes. Function logs report
+the MongoDB scheme, host, database name, connection attempts, and login request status without logging
+credentials or submitted email/password values. `/api/v1/health` remains a liveness check; inspect its
+`database` field for connection readiness.
+
 ## Secrets
 Real values are never committed. Local: gitignored `.env`. Deployed: GitHub Environment secrets.
 

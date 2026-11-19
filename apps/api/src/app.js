@@ -23,6 +23,25 @@ app.use(express.urlencoded({ extended: true }));
 // Development request logging
 app.use(morgan("dev"));
 
+// Request-completion logs are useful in serverless deployments where Morgan's dev format is disabled.
+app.use((req, res, next) => {
+  if (!["/api/v1/auth/login", "/api/auth/login"].includes(req.path)) return next();
+  const startedAt = Date.now();
+  res.on("finish", () => {
+    console.info(JSON.stringify({
+      event: "auth.login.complete",
+      method: req.method,
+      path: req.path,
+      status: res.statusCode,
+      durationMs: Date.now() - startedAt,
+      database: getDatabaseStatus(),
+      deployment: process.env.VERCEL_ENV ?? "local",
+      vercelRequestId: req.get("x-vercel-id") ?? null,
+    }));
+  });
+  next();
+});
+
 // Canonical paths live under /api/v1; the unversioned paths remain as aliases for existing callers.
 app.use(["/api/v1/auth", "/api/auth"], authRoutes);
 app.use(["/api/v1/teacher", "/api/teacher"], teacherRoutes);

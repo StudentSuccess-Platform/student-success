@@ -1,7 +1,7 @@
 # Project memory (shared, keep under 100 lines)
 Short durable facts for humans and AI agents. Update in the same PR as the change (protocol: AGENTS.md).
 Remove entries that stop being true.
-Last updated: 2026-11-16.
+Last updated: 2026-11-19.
 
 ## Product
 - StudentSuccess: academic monitoring and early-intervention web app for teachers, students, parents.
@@ -45,6 +45,7 @@ Last updated: 2026-11-16.
   PR with a misplaced test; .githooks/pre-push (npm install) also blocks a branch behind main.
 - Browser tests: Playwright in apps/web/tests/e2e/{auth,teacher,student,access}; CI job "Browser E2E" (not required yet).
 - Browser E2E local/CI Vite start must set `VITE_API_URL=http://localhost:3000`; Playwright defaults to installed Chromium unless a browser channel is selected.
+- API DB-backed routes check a shared MongoDB connection after request validation and authorization; unavailable DB returns 503, and connection/login logs omit credentials and submitted login values.
 - Deploy workflow is a manual no-op; hosting undecided (a railway-app GitHub app is installed; unconfirmed).
 
 ## Open work (MVP1 gaps, from Deandra's 2026-11-14 UI review)
