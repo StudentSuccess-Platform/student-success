@@ -44,6 +44,7 @@ Last updated: 2026-11-16.
   app, auth, common, student, teacher, utils (organized 2026-11-15). CI step scripts/check-test-layout.sh fails any
   PR with a misplaced test; .githooks/pre-push (npm install) also blocks a branch behind main.
 - Browser tests: Playwright in apps/web/tests/e2e/{auth,teacher,student,access}; CI job "Browser E2E" (not required yet).
+- Browser E2E local/CI Vite start must set `VITE_API_URL=http://localhost:3000`; Playwright defaults to installed Chromium unless a browser channel is selected.
 - Deploy workflow is a manual no-op; hosting undecided (a railway-app GitHub app is installed; unconfirmed).
 
 ## Open work (MVP1 gaps, from Deandra's 2026-11-14 UI review)
@@ -57,8 +58,9 @@ Last updated: 2026-11-16.
 - Student portal: support plan shows only published (teacher-approved) plans; all read-only; own data only.
   2026-11-17: GET /student/support-plans and GET /parent/children/:id/support-plans list every published plan (class name,
   publishedAt, `active` = newest per class); the student page shows active plans and hides earlier ones behind a button.
-- Parent portal (HIGH priority): dashboard, linked children, grades, attendance, goals, feedback, approved plan,
-  read-only, block unrelated students and unapproved AI content.
+- Parent portal: partial dashboard for the first linked child shows grades, attendance summary, trend, active goals,
+  shared feedback and latest published plan; API checks parent role and relationship. Child selector and reports,
+  notifications, messaging, and all-plan listing remain open.
 - AI: provider abstraction done (services/ai/aiClient.js; LLM_PROVIDER openai|ollama|mock, LLM_MODEL, LLM_BASE_URL,
   OPENAI_API_KEY, OLLAMA_MODEL, AI_TIMEOUT_MS). 2026-11-15: server.js calls services/ai/resolveProvider.js at startup:
   openai without key/model or unreachable -> ollama; unset/unknown -> ollama; mock untouched. AI down -> manual fallback.

@@ -8,37 +8,37 @@ It was derived from:
 
 ## Status legend
 - **Data model only** — a Mongoose model/relationship exists in `apps/api/src/models/`, but there is no API route/controller and no frontend view yet.
-- **UI pending** — `apps/web` exists as a scaffold, but `apps/web/src/pages/parent/` and `apps/web/src/components/parent/` currently contain only `.gitkeep` placeholders; no parent screens have been built.
+- **Partially implemented** — the API and parent dashboard show some of the feature, but the complete experience described here is not available yet.
 
-As of this writing, every feature below is **data model only, UI pending** — the backend data model supports the feature, but no API endpoint and no frontend view have been implemented yet.
+The parent dashboard is partially implemented. `GET /api/v1/parent/children` lists linked students, and `GET /api/v1/parent/children/:studentId/dashboard` returns a linked student's dashboard data. The UI currently shows the first linked child only; a child selector and several other parent features remain unimplemented.
 
 ## Features
 
 1. **View child's grades by course**
    Data: `Grade` (assignment-level, per student, via `Assignment` → `Section` → `Enrollment`), rolled up per `Course`/`Section`.
    Access rule: a guardian may view grades only for students they have an active `GuardianStudentLink` to.
-   Status: data model only, UI pending.
+   Status: partially implemented — the dashboard shows current grades by subject, but parents cannot select among multiple linked children yet.
 
 2. **View attendance history**
    Data: `Attendance` (per student, per section, per date).
    Access rule: scoped by `GuardianStudentLink`, same as grades.
-   Status: data model only, UI pending.
+   Status: partially implemented — the dashboard shows an attendance percentage, not attendance history.
 
 3. **View academic trend over time**
    Data: derived from `Grade` and `Attendance` history over time, and `GoalUpdate.progressPercent` history. No dedicated "trend" collection exists; trends are computed from the underlying records rather than stored directly.
-   Status: data model only, UI pending. (Also depends on a reporting/trend service, which is not yet implemented — see SCRUM-9's "Reporting/trend services" architecture item.)
+   Status: partially implemented — the dashboard displays a performance-trend chart derived from grade history.
 
 4. **View teacher feedback (shared, not private notes)**
    Data: `TeacherFeedback` (`visibility = "shared"`), a collection kept separate from `TeacherNote` (`visibility = "teacher_only"`). Per `docs/database/data-model.md`, student and parent queries never read `TeacherNote`, so private notes cannot leak through a shared query.
-   Status: data model only, UI pending.
+   Status: implemented in the dashboard — shared feedback history is displayed; private `TeacherNote` records are not returned.
 
 5. **View goals and progress**
    Data: `Goal` and `GoalUpdate` (`progressPercent`, author) for the linked student.
-   Status: data model only, UI pending.
+   Status: implemented in the dashboard — active goals and their latest progress are displayed.
 
 6. **View remediation plans (teacher-approved)**
    Data: `RemediationPlan` / `RemediationItem`. Plans follow a status flow (`draft` → `pending_review` → `approved` → `published`, or `archived`) and require `reviewedBy`/`reviewedAt` before publication, enforced by a `pre("validate")` hook. AI-sourced plans additionally carry an `AiAuditLog` reference. Parents only see plans in a published state — AI output is advisory until a teacher approves it.
-   Status: data model only, UI pending.
+   Status: partially implemented — the dashboard displays the latest published plan; it does not yet list all published plans.
 
 7. **View published progress reports**
    Data: `ProgressReport` (`period`, `summary`, `status`). Follows `draft` → `pending_review` → `published`; requires `reviewedBy` before publication, same as remediation plans.
@@ -53,7 +53,7 @@ As of this writing, every feature below is **data model only, UI pending** — t
    Status: data model only, UI pending.
 
 ## Access control (applies to all features above)
-Per `docs/database/data-model.md`: "a guardian can access exactly the students with an active `GuardianStudentLink`." This relationship-based rule, plus the shared/private split for teacher notes vs. feedback, is what makes every feature above safe to expose to a parent once the API and UI are built. Enforcement is the responsibility of the authentication/authorization work (SCRUM-12) and has not yet been implemented at the API layer — `apps/api/src/routes/` and `apps/api/src/controllers/` currently contain only `.gitkeep` placeholders.
+Per `docs/database/data-model.md`: "a guardian can access exactly the students with an active `GuardianStudentLink`." Parent API routes require authentication and the parent role, then verify the relationship before returning a linked student's data. Dashboard queries use shared feedback and published support plans; they do not return private teacher notes.
 
 ## Gap this document closes
-SCRUM-21 was marked Done without a dedicated feature specification; the feature list was only inferable from README's Version 1 Scope bullets and the data-model entity table. This document makes that inference explicit and numbered, and records that the backend data model (not the API or UI) is the only layer currently implemented for any parent-facing feature.
+SCRUM-21 was marked Done without a dedicated feature specification; the feature list was only inferable from README's Version 1 Scope bullets and the data-model entity table. This document makes that inference explicit and numbered, and records the implemented parent dashboard alongside features that remain data-model-only.
