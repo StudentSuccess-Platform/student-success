@@ -133,7 +133,7 @@ jobs:
         if: steps.changes.outputs.run == 'true'
         run: |
           (cd apps/api && PORT=3000 node src/server.js > "$RUNNER_TEMP/api.log" 2>&1 &)
-          (cd apps/web && npx vite --host 127.0.0.1 --port 5173 > "$RUNNER_TEMP/web.log" 2>&1 &)
+          (cd apps/web && VITE_API_URL=http://localhost:3000 npx vite --host 127.0.0.1 --port 5173 > "$RUNNER_TEMP/web.log" 2>&1 &)
           for _ in $(seq 1 30); do
             if curl -fsS http://localhost:3000/api/v1/health | grep -q '"database":"connected"' &&
               curl -fsS -o /dev/null http://127.0.0.1:5173; then

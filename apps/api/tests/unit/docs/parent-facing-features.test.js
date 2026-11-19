@@ -86,22 +86,17 @@ describe("docs/product/parent-facing-features.md", () => {
     }
   });
 
-  test("apps/web/src/pages/parent and apps/web/src/components/parent are still UI-pending (only .gitkeep/empty)", () => {
-    const parentDirs = [
-      path.join(REPO_ROOT, "apps", "web", "src", "pages", "parent"),
-      path.join(REPO_ROOT, "apps", "web", "src", "components", "parent"),
+  test("parent dashboard UI exists and the product doc reflects its partial implementation", () => {
+    const parentUiFiles = [
+      "apps/web/src/pages/parent/ParentDashboard.jsx",
+      "apps/web/src/pages/parent/ParentDashboardView.jsx",
+      "apps/web/src/pages/parent/useParentChildrenData.js",
+      "apps/web/src/pages/parent/useParentDashboardData.js",
     ];
 
-    for (const dir of parentDirs) {
-      assert.ok(fs.existsSync(dir), `expected directory ${dir} to exist`);
-      const entries = fs.readdirSync(dir).filter((name) => name !== ".gitkeep");
-      assert.equal(
-        entries.length,
-        0,
-        `expected ${dir} to contain no real files yet (only .gitkeep), but found: ${entries.join(", ")}. ` +
-          "If parent UI has been built, update docs/product/parent-facing-features.md's status " +
-          "from 'UI pending' before updating this test.",
-      );
+    for (const file of parentUiFiles) {
+      assert.ok(fs.existsSync(path.join(REPO_ROOT, file)), `expected parent dashboard file ${file}`);
     }
+    assert.match(content, /^The parent dashboard is partially implemented\./m);
   });
 });
