@@ -18,6 +18,7 @@ Last updated: 2026-11-16.
 ## Stack and ports
 - Node 22.13+, Express 5, Mongoose 9, MongoDB 7 (Docker), React 19, Vite, Vitest, Playwright.
 - API 3000, Web 5173, MongoDB 27017, Ollama 11434 (optional). API base: /api/v1 (unversioned /api/... kept as alias).
+- 2026-11-19: Vercel services use api (public /api/*) and web (public catch-all); no service binding is needed because web calls the public API from the browser.
 - Repo: github.com/StudentSuccess-Platform/student-success (private, org on GitHub Team plan).
 
 ## Built (API: docs/api/endpoints.md)
