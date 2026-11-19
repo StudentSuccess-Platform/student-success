@@ -1,6 +1,11 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { redactCredentials, getDatabaseStatus, connectDatabase } from "../../../src/config/database.js";
+import {
+  redactCredentials,
+  describeMongoUri,
+  getDatabaseStatus,
+  connectDatabase,
+} from "../../../src/config/database.js";
 
 describe("database config", () => {
   test("redactCredentials hides user and password in connection strings", () => {
@@ -14,6 +19,18 @@ describe("database config", () => {
 
   test("redactCredentials leaves text without credentials unchanged", () => {
     assert.equal(redactCredentials("mongodb://localhost:27017/app"), "mongodb://localhost:27017/app");
+  });
+
+  test("describeMongoUri reports connection target without exposing credentials", () => {
+    const config = describeMongoUri("mongodb+srv://db-user:secret@cluster.example.mongodb.net/studentsuccess?retryWrites=true");
+    assert.deepEqual(config, {
+      configured: true,
+      scheme: "mongodb+srv",
+      host: "cluster.example.mongodb.net",
+      database: "studentsuccess",
+      hasCredentials: true,
+    });
+    assert.equal(JSON.stringify(config).includes("secret"), false);
   });
 
   test("getDatabaseStatus reports disconnected when never connected", () => {

@@ -81,4 +81,33 @@ describe("global error handler", () => {
       console.error = original;
     }
   });
+
+  test("login returns a database-unavailable response instead of timing out when MongoDB is not configured", async () => {
+    const originalUri = process.env.MONGODB_URI;
+    const originalError = console.error;
+    const originalInfo = console.info;
+    const logged = [];
+    process.env.MONGODB_URI = "";
+    console.error = () => {};
+    console.info = (line) => logged.push(line);
+    try {
+      const res = await fetch(`${ctx.baseUrl}/api/v1/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "student@example.test", password: "password123" }),
+      });
+      assert.equal(res.status, 503);
+      assert.deepEqual(await res.json(), {
+        code: "DATABASE_UNAVAILABLE",
+        error: "Database is unavailable",
+      });
+      assert.ok(logged.some((line) => String(line).includes('"event":"auth.login.complete"')));
+      assert.ok(logged.every((line) => !String(line).includes("student@example.test")));
+    } finally {
+      if (originalUri === undefined) delete process.env.MONGODB_URI;
+      else process.env.MONGODB_URI = originalUri;
+      console.error = originalError;
+      console.info = originalInfo;
+    }
+  });
 });
