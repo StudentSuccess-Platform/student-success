@@ -63,8 +63,9 @@ describe('ParentAcademicProgressPage', () => {
 
     render(<ParentAcademicProgressPage />)
 
-    await screen.findByRole('heading', { name: 'Academic Progress' })
-    expect(screen.getByText('84%')).toBeInTheDocument() // overall grade
+    // The heading renders during the loading state too, so wait for the loaded data, not just the heading.
+    await screen.findByText('84%') // overall grade
+    expect(screen.getByRole('heading', { name: 'Academic Progress' })).toBeInTheDocument()
     expect(screen.getByText('94%')).toBeInTheDocument() // attendance
     expect(screen.getByTestId('performance-chart')).toBeInTheDocument()
     expect(screen.getByText('Algebra I')).toBeInTheDocument()
