@@ -85,7 +85,9 @@ function RosterView({ data, isLoading, error }) {
               <p className="chart-empty">No students match &ldquo;{query}&rdquo;.</p>
             )}
 
-            {visibleStudents.length > 0 && <RosterTable students={visibleStudents} />}
+            {visibleStudents.length > 0 && (
+              <RosterTable students={visibleStudents} classId={data.class.id} />
+            )}
           </DashboardCard>
         </>
       )}

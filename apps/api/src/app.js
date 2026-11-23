@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import { getDatabaseStatus } from "./config/database.js";
+import { connectDatabase, getDatabaseStatus } from "./config/database.js";
 import authRoutes from "./routes/authRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
@@ -56,8 +56,15 @@ app.get("/api/v1", (req, res) => {
   });
 });
 
-// Health check
-app.get("/api/v1/health", (req, res) => {
+// Health check. Attempts the real connection before reporting `database`: on a cold
+// serverless invocation, mongoose's readyState starts at 0 regardless of whether the
+// database is actually reachable, so reading readyState alone (without trying first)
+// reports "disconnected" even when the database is fine. connectDatabase() already
+// no-ops when already connected and de-dupes concurrent attempts, so this never opens
+// a redundant connection on a warm invocation — it only connects when one doesn't
+// already exist, same as every other database-backed route.
+app.get("/api/v1/health", async (req, res) => {
+  await connectDatabase();
   res.status(200).json({
     status: "healthy",
     service: "student-success-api",
