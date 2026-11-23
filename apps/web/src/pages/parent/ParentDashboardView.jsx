@@ -1,12 +1,24 @@
+import { Link } from 'react-router-dom'
 import DashboardCard from '../../components/common/DashboardCard'
-import ParentAcademicProgress from './ParentAcademicProgress'
+import StatCard from '../../components/common/StatCard'
+
+import barChartIcon from '../../assets/icons/dashboard/bar-chart.svg'
+import calendarCheckIcon from '../../assets/icons/dashboard/calendar-check.svg'
+import bookOpenIcon from '../../assets/icons/dashboard/book-open.svg'
 
 /**
- * Renders one linked child's dashboard for a parent. `parentFirstName` is the signed-in parent's
+ * Concise, at-a-glance summary for one linked child: headline stat cards, a one-item teacher
+ * feedback preview, and the current support plan. `parentFirstName` is the signed-in parent's
  * own name (for the greeting); everything else comes from the child's dashboard response.
  *
- * Grades/attendance/trend/goals/feedback live in `ParentAcademicProgress` (SCRUM-147). The
- * Support Plan block below stays here untouched (SCRUM-148's territory).
+ * Full academic detail — subject grades, performance trend, every academic goal, and the full
+ * teacher feedback history — lives on the dedicated Academic Progress page
+ * (`ParentAcademicProgressPage`, which reuses `ParentAcademicProgress` from SCRUM-147), linked to
+ * below rather than duplicated here (SCRUM-153).
+ *
+ * `data.teacherFeedback` is already the latest shared note only (`feedback[0]` in
+ * `studentViews.js`, scoped server-side to `TeacherFeedback.find({ visibility: "shared" })`) —
+ * this preview has no code path that reads a private `TeacherNote` field.
  */
 function ParentDashboardView({ data, isLoading, error, parentFirstName }) {
   return (
@@ -33,7 +45,41 @@ function ParentDashboardView({ data, isLoading, error, parentFirstName }) {
             </p>
           </header>
 
-          <ParentAcademicProgress data={data} />
+          <div className="stat-card-grid">
+            <StatCard
+              icon={barChartIcon}
+              label="Overall grade"
+              value={data.summary.currentGrade == null ? '—' : `${data.summary.currentGrade}%`}
+            />
+
+            <StatCard
+              icon={calendarCheckIcon}
+              label="Attendance"
+              value={data.summary.attendance == null ? '—' : `${data.summary.attendance}%`}
+            />
+
+            <StatCard icon={bookOpenIcon} label="Active goals" value={data.goals.length} />
+          </div>
+
+          <DashboardCard
+            title="Teacher feedback"
+            action={
+              <Link to="/parent/academic-progress" className="class-overview-back-link">
+                View Academic Progress →
+              </Link>
+            }
+          >
+            {data.teacherFeedback ? (
+              <div>
+                <p>{data.teacherFeedback.message}</p>
+                <small>
+                  {data.teacherFeedback.teacher} · {data.teacherFeedback.date}
+                </small>
+              </div>
+            ) : (
+              <p className="chart-empty">No teacher feedback available yet.</p>
+            )}
+          </DashboardCard>
 
           {['approved', 'published'].includes(data.supportPlan?.status) && (
             <DashboardCard title="Approved learning support plan">

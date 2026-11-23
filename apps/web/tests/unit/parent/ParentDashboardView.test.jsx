@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
+import { describe, expect, it } from 'vitest'
 import ParentDashboardView from '../../../src/pages/parent/ParentDashboardView'
 
 const sampleData = {
@@ -11,48 +12,23 @@ const sampleData = {
     { label: 'Week 2', value: 79 },
   ],
   goals: [{ id: 'g1', title: 'Improve fraction accuracy', progress: 60 }],
-  teacherFeedback: null,
+  teacherFeedback: { teacher: 'Dr. Maya Chen', date: '2026-09-18', message: 'Great persistence.' },
   feedbackHistory: [
     { id: 'f1', teacher: 'Dr. Maya Chen', date: '2026-09-18', message: 'Great persistence.' },
   ],
   supportPlan: null,
 }
 
-beforeEach(() => {
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
-    width: 600,
-    height: 240,
-    top: 0,
-    left: 0,
-    bottom: 240,
-    right: 600,
-    x: 0,
-    y: 0,
-    toJSON: () => {},
-  })
-
-  globalThis.ResizeObserver = class ResizeObserver {
-    constructor(callback) {
-      this.callback = callback
-    }
-    observe(target) {
-      this.callback([{ target, contentRect: target.getBoundingClientRect() }])
-    }
-    unobserve() {}
-    disconnect() {}
-  }
-})
+function view(props) {
+  return (
+    <MemoryRouter>
+      <ParentDashboardView data={null} isLoading={false} error={null} parentFirstName="Priya" {...props} />
+    </MemoryRouter>
+  )
+}
 
 function renderView(props) {
-  return render(
-    <ParentDashboardView
-      data={null}
-      isLoading={false}
-      error={null}
-      parentFirstName="Priya"
-      {...props}
-    />
-  )
+  return render(view(props))
 }
 
 describe('ParentDashboardView', () => {
@@ -76,29 +52,38 @@ describe('ParentDashboardView', () => {
     expect(screen.getByText(/no linked student found/i)).toBeInTheDocument()
   })
 
-  it("renders the parent greeting, the child's name, grades, trend, goals, and feedback from real data", () => {
+  it("renders the parent greeting, the child's name, headline stats, and a latest-feedback preview from real data", () => {
     renderView({ data: sampleData })
 
     expect(screen.getByText(/good morning, priya/i)).toBeInTheDocument()
     expect(screen.getByText(/liam.*published academic progress/i)).toBeInTheDocument()
     expect(screen.getByText('84%')).toBeInTheDocument()
     expect(screen.getByText('94%')).toBeInTheDocument()
-    expect(screen.getByText('Mathematics')).toBeInTheDocument()
-    expect(screen.getByText('Improve fraction accuracy')).toBeInTheDocument()
+    expect(screen.getByText('1')).toBeInTheDocument() // active goals count
     expect(screen.getByText('Great persistence.')).toBeInTheDocument()
+    expect(screen.getByText('Dr. Maya Chen · 2026-09-18')).toBeInTheDocument()
   })
 
-  it('never renders an Assignments or Support-plan-countdown stat card, since the API does not provide either', () => {
+  it('is a concise summary: never duplicates the detailed subject grades, trend, or full goal list that Academic Progress shows', () => {
     renderView({ data: sampleData })
 
+    expect(screen.queryByText('Mathematics')).not.toBeInTheDocument()
+    expect(screen.queryByText('Improve fraction accuracy')).not.toBeInTheDocument()
     expect(screen.queryByText(/^assignments$/i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/week \d of \d/i)).not.toBeInTheDocument()
   })
 
-  it('shows empty-state messages when goals and feedback are both empty', () => {
-    renderView({ data: { ...sampleData, goals: [], feedbackHistory: [] } })
+  it('links clearly to the detailed Academic Progress page', () => {
+    renderView({ data: sampleData })
 
-    expect(screen.getByText(/no active goals yet/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /view academic progress/i })).toHaveAttribute(
+      'href',
+      '/parent/academic-progress'
+    )
+  })
+
+  it('shows an empty-state message when there is no teacher feedback yet', () => {
+    renderView({ data: { ...sampleData, teacherFeedback: null } })
+
     expect(screen.getByText(/no teacher feedback available yet/i)).toBeInTheDocument()
   })
 
@@ -109,18 +94,15 @@ describe('ParentDashboardView', () => {
     expect(screen.queryByText(/approved learning support plan/i)).not.toBeInTheDocument()
 
     rerender(
-      <ParentDashboardView
-        data={{
+      view({
+        data: {
           ...sampleData,
           supportPlan: {
             status: 'approved',
             activities: [{ id: 'a1', title: 'Small-group instruction', schedule: 'Tue & Thu' }],
           },
-        }}
-        isLoading={false}
-        error={null}
-        parentFirstName="Priya"
-      />
+        },
+      })
     )
     expect(screen.getByText(/approved learning support plan/i)).toBeInTheDocument()
     expect(screen.getByText('Small-group instruction')).toBeInTheDocument()

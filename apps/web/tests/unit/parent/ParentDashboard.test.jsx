@@ -1,8 +1,17 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import ParentDashboard from '../../../src/pages/parent/ParentDashboard'
 import { getChildren, getChildDashboard } from '../../../src/services/parentApi'
+
+function renderDashboard() {
+  return render(
+    <MemoryRouter>
+      <ParentDashboard />
+    </MemoryRouter>
+  )
+}
 
 function deferred() {
   let resolve
@@ -55,7 +64,7 @@ describe('ParentDashboard', () => {
     })
     getChildDashboard.mockResolvedValue(dashboard)
 
-    render(<ParentDashboard />)
+    renderDashboard()
 
     expect(await screen.findByText(/good morning, priya/i)).toBeInTheDocument()
     expect(screen.getByText(/liam.*published academic progress/i)).toBeInTheDocument()
@@ -65,7 +74,7 @@ describe('ParentDashboard', () => {
   it('shows a dedicated message when no students are linked, without calling the dashboard endpoint', async () => {
     getChildren.mockResolvedValue({ children: [] })
 
-    render(<ParentDashboard />)
+    renderDashboard()
 
     await waitFor(() =>
       expect(screen.getByText(/no students are linked to your account/i)).toBeInTheDocument()
@@ -76,7 +85,7 @@ describe('ParentDashboard', () => {
   it('shows an error state when the linked-children request fails', async () => {
     getChildren.mockRejectedValue(new Error('Network error'))
 
-    render(<ParentDashboard />)
+    renderDashboard()
 
     await waitFor(() =>
       expect(screen.getByText(/couldn't load your linked students/i)).toBeInTheDocument()
@@ -87,7 +96,7 @@ describe('ParentDashboard', () => {
     getChildren.mockResolvedValue({ children: [{ id: 's1', name: 'Liam Patel', gradeLevel: 8 }] })
     getChildDashboard.mockResolvedValue(dashboard)
 
-    render(<ParentDashboard />)
+    renderDashboard()
 
     await screen.findByText(/good morning, priya/i)
     expect(screen.queryByLabelText(/viewing/i)).not.toBeInTheDocument()
@@ -108,7 +117,7 @@ describe('ParentDashboard', () => {
       studentId === 's1' ? Promise.resolve(liamResponse) : mayaDeferred.promise
     )
 
-    render(<ParentDashboard />)
+    renderDashboard()
     await screen.findByText(/liam.*published academic progress/i)
 
     await user.selectOptions(screen.getByLabelText(/viewing/i), 'Maya Patel')
@@ -134,7 +143,7 @@ describe('ParentDashboard', () => {
     const responses = { s1: deferred(), s2: deferred(), s3: deferred() }
     getChildDashboard.mockImplementation((studentId) => responses[studentId].promise)
 
-    render(<ParentDashboard />)
+    renderDashboard()
     await screen.findByLabelText(/viewing/i)
 
     await user.selectOptions(screen.getByLabelText(/viewing/i), 'Maya Patel')
