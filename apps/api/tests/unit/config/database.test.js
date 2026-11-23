@@ -5,7 +5,9 @@ import {
   describeMongoUri,
   getDatabaseStatus,
   connectDatabase,
+  disconnectDatabase,
 } from "../../../src/config/database.js";
+import { createTestDatabaseUri } from "../../helpers/database.js";
 
 describe("database config", () => {
   test("redactCredentials hides user and password in connection strings", () => {
@@ -54,5 +56,25 @@ describe("database config", () => {
     assert.equal(ok, false);
     assert.ok(errors.length >= 1);
     assert.ok(errors.every((m) => !m.includes("hunter2")));
+  });
+
+  test("connectDatabase skips reconnecting when already connected, so a health check can call it on every request without opening a redundant connection", async (t) => {
+    const uri = createTestDatabaseUri();
+    if (!uri) {
+      t.skip("set MONGODB_URI to a MongoDB server");
+      return;
+    }
+
+    assert.equal(await connectDatabase({ uri }), true);
+
+    // Already connected: a second call, even with an unreachable uri, must resolve
+    // immediately without attempting that uri — proving it reused the existing
+    // connection instead of opening a new one.
+    const startedAt = Date.now();
+    const stillConnected = await connectDatabase({ uri: "mongodb://127.0.0.1:1/unreachable", retries: 5 });
+    assert.equal(stillConnected, true);
+    assert.ok(Date.now() - startedAt < 500, "resolved immediately instead of attempting the unreachable uri");
+
+    await disconnectDatabase();
   });
 });

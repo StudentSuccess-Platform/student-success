@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import StudentProfile from '../../../src/pages/teacher/StudentProfile'
 import { ApiError } from '../../../src/services/http'
@@ -123,13 +123,22 @@ const profile = {
   ],
 }
 
-function renderProfile(studentId = 'stu1', tab = null) {
-  const query = tab ? `?tab=${tab}` : ''
+function RosterStub() {
+  const { classId } = useParams()
+  return <p>roster-page-for-{classId}</p>
+}
+
+function renderProfile(studentId = 'stu1', tab = null, from = null) {
+  const params = new URLSearchParams()
+  if (tab) params.set('tab', tab)
+  if (from) params.set('from', from)
+  const query = params.toString() ? `?${params.toString()}` : ''
   return render(
     <MemoryRouter initialEntries={[`/teacher/students/${studentId}${query}`]}>
       <Routes>
         <Route path="/teacher/students/:studentId" element={<StudentProfile />} />
         <Route path="/teacher/students" element={<p>students-list-page</p>} />
+        <Route path="/teacher/classes/:classId/roster" element={<RosterStub />} />
       </Routes>
     </MemoryRouter>
   )
@@ -392,6 +401,62 @@ describe('Student profile page', () => {
       await screen.findByText(/couldn't load this student\. please try again\./i)
     ).toBeInTheDocument()
     expect(screen.queryByText('Student not found')).not.toBeInTheDocument()
+  })
+})
+
+// SCRUM-152: reached from a class's Roster tab (?from=<classId>), "back" returns to that
+// roster instead of the full Students list.
+describe('Student profile reached from a class roster (SCRUM-152)', () => {
+  it('shows "Back to roster" and returns to the originating class roster when clicked', async () => {
+    getStudentProfile.mockResolvedValue(profile)
+    const user = userEvent.setup()
+    renderProfile('stu1', null, 'sec1')
+
+    const back = await screen.findByRole('link', { name: 'Back to roster' })
+    expect(back).toHaveAttribute('href', '/teacher/classes/sec1/roster')
+    expect(screen.queryByRole('link', { name: 'Back to students' })).not.toBeInTheDocument()
+
+    await user.click(back)
+    expect(await screen.findByText('roster-page-for-sec1')).toBeInTheDocument()
+  })
+
+  it('keeps the roster return target after switching tabs', async () => {
+    getStudentProfile.mockResolvedValue(profile)
+    const user = userEvent.setup()
+    renderProfile('stu1', null, 'sec1')
+
+    await screen.findByRole('heading', { name: 'Ada Lovelace' })
+    await user.click(screen.getByRole('tab', { name: 'Grades' }))
+
+    expect(screen.getByRole('tab', { name: 'Grades' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('link', { name: 'Back to roster' })).toHaveAttribute(
+      'href',
+      '/teacher/classes/sec1/roster'
+    )
+  })
+
+  it('shows "Back to roster" instead of "Back to students" on a 404 when reached from a roster', async () => {
+    getStudentProfile.mockRejectedValue(new ApiError('Student not found', { status: 404 }))
+
+    renderProfile('missing', null, 'sec1')
+
+    expect(await screen.findByText('Student not found')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to roster' })).toHaveAttribute(
+      'href',
+      '/teacher/classes/sec1/roster'
+    )
+  })
+
+  it('still defaults to "Back to students" when not reached from a roster', async () => {
+    getStudentProfile.mockResolvedValue(profile)
+
+    renderProfile('stu1')
+
+    expect(await screen.findByRole('link', { name: 'Back to students' })).toHaveAttribute(
+      'href',
+      '/teacher/students'
+    )
+    expect(screen.queryByRole('link', { name: 'Back to roster' })).not.toBeInTheDocument()
   })
 })
 
