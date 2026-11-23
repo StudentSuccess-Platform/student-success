@@ -461,6 +461,31 @@
   color: var(--dash-body-text);
 }
 
+/* Parent child selector */
+
+.parent-child-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.parent-child-selector label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dash-body-text);
+}
+
+.parent-child-selector select {
+  padding: 8px 12px;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dash-heading);
+  background: #fff;
+}
+
 /* Class detail tab bar (shared by Overview and Roster) */
 
 .class-tabs {
