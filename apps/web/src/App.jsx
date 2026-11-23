@@ -26,6 +26,9 @@ import StudentSupportPlan from './pages/student/SupportPlan'
 import ParentDashboard from './pages/parent/ParentDashboard'
 import ParentAcademicProgressPage from './pages/parent/ParentAcademicProgressPage'
 import ParentSupportPlan from './pages/parent/ParentSupportPlan'
+import ParentReports from './pages/parent/ParentReports'
+import StudentReports from './pages/student/Reports'
+import TeacherReports from './pages/teacher/Reports'
 
 function AuthFlow() {
   const [authView, setAuthView] = useState('login')
@@ -165,7 +168,7 @@ function AppContent() {
         <Route path="classes/:classId/roster" element={<ClassRoster />} />
         <Route path="students" element={<TeacherStudents />} />
         <Route path="students/:studentId" element={<TeacherStudentProfile />} />
-        <Route path="reports" element={<ComingSoon title="Reports" />} />
+        <Route path="reports" element={<TeacherReports />} />
         <Route path="settings" element={<ComingSoon title="Settings" />} />
       </Route>
 
@@ -181,6 +184,7 @@ function AppContent() {
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="progress" element={<StudentProgress />} />
         <Route path="support-plan" element={<StudentSupportPlan />} />
+        <Route path="reports" element={<StudentReports />} />
       </Route>
 
       <Route
@@ -195,6 +199,7 @@ function AppContent() {
         <Route path="overview" element={<ParentDashboard />} />
         <Route path="academic-progress" element={<ParentAcademicProgressPage />} />
         <Route path="support-plan" element={<ParentSupportPlan />} />
+        <Route path="reports" element={<ParentReports />} />
       </Route>
     </Routes>
   )

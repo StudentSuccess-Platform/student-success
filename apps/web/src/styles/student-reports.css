@@ -1,0 +1,55 @@
+/* Published progress reports for the student and parent pages. */
+
+.progress-reports-page {
+  width: 100%;
+  padding: 24px;
+}
+
+.progress-reports-page .page-header {
+  margin-bottom: 24px;
+}
+
+.progress-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.progress-report {
+  padding: 20px;
+  border: 1px solid #dde3ea;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.progress-report-class {
+  margin: 0;
+  color: #142944;
+  font-size: 1.15rem;
+}
+
+.progress-report-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 4px 0 12px;
+  color: #5e6c84;
+  font-size: 0.9rem;
+}
+
+.progress-report-summary {
+  margin: 0;
+  color: #142944;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.progress-reports-empty {
+  color: #5e6c84;
+}
+
+@media (max-width: 640px) {
+  .progress-reports-page {
+    padding: 16px;
+  }
+}

@@ -1,3 +1,4 @@
+import { request } from './http'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -33,4 +34,9 @@ export async function getStudentSupportPlans(token) {
   }
 
   return response.json()
+}
+
+// The signed-in student's published progress reports, newest period first.
+export function getStudentReports(token) {
+  return request('/api/v1/student/reports', { token })
 }

@@ -1,7 +1,7 @@
 # Project memory (shared, keep under 100 lines)
 Short durable facts for humans and AI agents. Update in the same PR as the change (protocol: AGENTS.md).
 Remove entries that stop being true.
-Last updated: 2026-11-23.
+Last updated: 2026-11-24.
 
 ## Product
 - StudentSuccess: academic monitoring and early-intervention web app for teachers, students, parents.
@@ -25,16 +25,17 @@ Last updated: 2026-11-23.
 - Auth: /auth/register|login|me|forgot-password|reset-password; bcrypt + JWT (JWT_SECRET required).
   Public signup roles: teacher, student, parent (never admin). Seeded users: password Password123!.
 - Teacher: /teacher/dashboard|classes|classes/:id (+ POST classes/:id/students), /students[/:id], grades/attendance/goals/feedback entry,
+  /reports + /students/:id/reports (progress reports: suggestion, create, edit, publish, delete a draft),
   /students/:id/remediation (+ /ai, approve|reject|publish); all need role teacher and enforce assigned-student access
   (services/access/teacherAccess.js: 404 for unassigned students).
-- Student: /student/profile|grades|attendance|dashboard|support-plans|me/dashboard (web calls /api/student/me/dashboard; keep alias).
-- Parent: /parent/children[/:id/dashboard|support-plans]; linked students only (relationship check in services/access).
+- Student: /student/profile|grades|attendance|dashboard|support-plans|reports|me/dashboard (web calls /api/student/me/dashboard; keep alias).
+- Parent: /parent/children[/:id/dashboard|support-plans|reports]; linked students only (relationship check in services/access).
 - Web: login/register/forgot, role redirects (AuthContext, ProtectedRoute); teacher dashboard + My Classes use the API
   (hooks/useApiResource); student portal (dashboard, progress, support plan) uses the API; parent portal (2026-11-23):
   linked-child selector, Overview, Academic Progress and Support Plan pages (SCRUM-146..153); roster rows link to profiles (SCRUM-152).
 - Web teacher class overview (SCRUM-143) uses the real class list but DEMO data (banner shown; classOverviewMockData.js); the class
   Roster tab is real, the Assignments & Grades and Attendance tabs are disabled placeholders. Dates in feedback use utils/formatDate.
-- Not built: teacher Reports and Settings, Add Student form (API exists), live Class Overview data, reset-password page,
+- Not built: teacher Settings, Add Student form (API exists), live Class Overview data, reset-password page,
   real email (utils/mailer.js only logs).
 
 ## Workflow and rules
@@ -47,7 +48,7 @@ Last updated: 2026-11-23.
   app, auth, common, student, teacher, utils (organized 2026-11-15). CI step scripts/check-test-layout.sh fails any
   PR with a misplaced test; .githooks/pre-push (npm install) also blocks a branch behind main.
 - Browser tests: Playwright in apps/web/tests/e2e/{auth,teacher,student,access}; CI job "Browser E2E" (not required yet).
-- Test status on main 2026-11-23: API 437 tests (101 suites), web 405 (68 files), Playwright 49; all green. Vitest must run from PowerShell on Windows.
+- Test status 2026-11-24 (with teacher Reports): API 482 tests (113 suites), web 449 (74 files), Playwright 55; all green. Vitest must run from PowerShell on Windows.
 - Browser E2E local/CI Vite start must set `VITE_API_URL=http://localhost:3000`; Playwright defaults to installed Chromium unless a browser channel is selected.
 - API DB-backed routes check a shared MongoDB connection after request validation and authorization; unavailable DB returns 503, and connection/login logs omit credentials and submitted login values.
 - Deploy workflow is a manual no-op; Vercel config for API and web merged (SCRUM-150); live URL not confirmed.
@@ -88,3 +89,5 @@ Last updated: 2026-11-23.
 - 2026-11-16: local AI default is Ollama gemma3:1b (9 models benchmarked); User.email optional, teacher-added students are "invited".
 - 2026-11-17: Docker stack is lean (no bundled Ollama); students and parents list every published plan (class, date, active).
 - 2026-11-23: parent portal merged (SCRUM-146..153); feedback dates shown as readable dates.
+- 2026-11-24: teacher Reports = progress reports (draft -> published by the teacher, who owns them via ProgressReport.teacher); students and
+  parents see only published ones (/student/reports, /parent/children/:id/reports). The suggested summary is deterministic, no AI.

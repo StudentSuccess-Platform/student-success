@@ -7,6 +7,8 @@ const progressReportSchema = new Schema(
   {
     student: { type: Schema.Types.ObjectId, ref: "StudentProfile", required: true },
     section: { type: Schema.Types.ObjectId, ref: "Section" },
+    // The teacher who wrote the report. Teachers only ever see and change their own reports.
+    teacher: { type: Schema.Types.ObjectId, ref: "TeacherProfile" },
     periodStart: { type: Date, required: true },
     periodEnd: { type: Date, required: true },
     summary: { type: String, required: true, trim: true },
@@ -20,6 +22,7 @@ const progressReportSchema = new Schema(
   { timestamps: true },
 );
 progressReportSchema.index({ student: 1, periodEnd: -1 });
+progressReportSchema.index({ teacher: 1, updatedAt: -1 });
 
 progressReportSchema.pre("validate", function () {
   if (this.status === "published" && (!this.reviewedBy || !this.reviewedAt || !this.publishedAt)) {

@@ -16,9 +16,12 @@ export default {
         { weight: 20, value: "pending_review" },
         { weight: 50, value: "published" },
       ]);
+      const section = sections.get(String(mine[0].section));
       const report = {
         _id: id(),
         student: student._id,
+        section: section._id,
+        teacher: section.teacher,
         periodStart: addDays(REF_DATE, -70),
         periodEnd: addDays(REF_DATE, -1),
         summary: `Overall average of ${Math.round(overall * 100)}% across ${mine.length} classes this term.`,
@@ -26,7 +29,7 @@ export default {
         source: "teacher",
       };
       if (status === "published") {
-        report.reviewedBy = sections.get(String(mine[0].section)).teacher;
+        report.reviewedBy = section.teacher;
         report.reviewedAt = addDays(REF_DATE, -2);
         report.publishedAt = addDays(REF_DATE, -1);
       }

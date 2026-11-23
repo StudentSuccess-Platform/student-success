@@ -16,6 +16,7 @@ export const studentNavItems = [
   { id: 'dashboard', label: 'Dashboard', icon: gridIcon, path: '/student/dashboard' },
   { id: 'my-progress', label: 'My Progress', icon: bookOpenIcon, path: '/student/progress' },
   { id: 'support-plan', label: 'Support Plan', icon: settingsIcon, path: '/student/support-plan' },
+  { id: 'reports', label: 'Progress Reports', icon: barChartIcon, path: '/student/reports' },
 ]
 
 // Academic Progress intentionally covers grades/attendance/assignments/feedback in one page
@@ -25,4 +26,5 @@ export const parentNavItems = [
   { id: 'overview', label: 'Overview', icon: gridIcon, path: '/parent/overview' },
   { id: 'academic-progress', label: 'Academic Progress', icon: barChartIcon, path: '/parent/academic-progress' },
   { id: 'support-plan', label: 'Support Plan', icon: settingsIcon, path: '/parent/support-plan' },
+  { id: 'reports', label: 'Progress Reports', icon: bookOpenIcon, path: '/parent/reports' },
 ]
