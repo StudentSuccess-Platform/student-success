@@ -88,7 +88,6 @@ function Dashboard() {
         </DashboardCard>
       </div>
 
-      <div className="dashboard-grid-row">
         <DashboardCard title="Academic goals">
           {data.goals.map((goal) => (
             <div key={goal.id}>
@@ -112,7 +111,6 @@ function Dashboard() {
             <p>No teacher feedback available yet.</p>
           )}
         </DashboardCard>
-      </div>
 
       {['approved', 'published'].includes(data.supportPlan?.status) && (
         <DashboardCard title="Your learning support plan">
