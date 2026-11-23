@@ -5,6 +5,7 @@ import StatCard from '../../components/common/StatCard'
 import barChartIcon from '../../assets/icons/dashboard/bar-chart.svg'
 import calendarCheckIcon from '../../assets/icons/dashboard/calendar-check.svg'
 import bookOpenIcon from '../../assets/icons/dashboard/book-open.svg'
+import { formatDate } from '../../utils/formatDate'
 
 /**
  * Concise, at-a-glance summary for one linked child: headline stat cards, a one-item teacher
@@ -73,7 +74,7 @@ function ParentDashboardView({ data, isLoading, error, parentFirstName }) {
               <div>
                 <p>{data.teacherFeedback.message}</p>
                 <small>
-                  {data.teacherFeedback.teacher} · {data.teacherFeedback.date}
+                  {data.teacherFeedback.teacher} · {formatDate(data.teacherFeedback.date)}
                 </small>
               </div>
             ) : (

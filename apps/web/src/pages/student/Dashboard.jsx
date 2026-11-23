@@ -11,6 +11,7 @@ import bookOpenIcon from '../../assets/icons/dashboard/book-open.svg'
 import '../../styles/student-dashboard.css'
 import { getStudentDashboard } from '../../services/studentApi'
 import { useAuth } from '../../state/AuthContext'
+import { formatDate } from '../../utils/formatDate'
 
 function Dashboard() {
   const { token } = useAuth()
@@ -103,7 +104,7 @@ function Dashboard() {
               <div key={item.id ?? index}>
                 <p>{item.message}</p>
                 <small>
-                  {item.teacher} · {item.date}
+                  {item.teacher} · {formatDate(item.date)}
                 </small>
               </div>
             ))

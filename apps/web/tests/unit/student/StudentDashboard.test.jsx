@@ -90,6 +90,9 @@ describe('StudentDashboard', () => {
     const newest = await screen.findByText('Newest note')
     const older = screen.getByText('Older note')
     expect(newest.compareDocumentPosition(older) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // The date is shown as a readable date, never the raw value.
+    expect(screen.getByText('Ms. Lee · Mar 2, 2026')).toBeInTheDocument()
+    expect(screen.getByText('Ms. Lee · Feb 1, 2026')).toBeInTheDocument()
   })
 
   it('displays the approved support plan', async () => {
