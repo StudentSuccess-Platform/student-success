@@ -17,22 +17,23 @@ Last updated: 2026-11-23.
 
 ## Stack and ports
 - Node 22.13+, Express 5, Mongoose 9, MongoDB 7 (Docker), React 19, Vite, Vitest, Playwright.
-- API 3000, Web 5173, MongoDB 27017, Ollama 11434 (optional). API base: /api/v1 (unversioned /api/... kept as alias).
+- API 3000, Web 5173 (Vite dev) or 8080 (Docker/nginx), MongoDB 27017, Ollama 11434 (optional). API base: /api/v1 (unversioned /api/... kept as alias).
 - 2026-11-19: Vercel services use api (public /api/*) and web (public catch-all); no service binding is needed because web calls the public API from the browser.
 - Repo: github.com/StudentSuccess-Platform/student-success (private, org on GitHub Team plan).
 
 ## Built (API: docs/api/endpoints.md)
 - Auth: /auth/register|login|me|forgot-password|reset-password; bcrypt + JWT (JWT_SECRET required).
   Public signup roles: teacher, student, parent (never admin). Seeded users: password Password123!.
-- Teacher: /teacher/dashboard|classes|classes/:id, /students[/:id], grades/attendance/goals/feedback entry,
+- Teacher: /teacher/dashboard|classes|classes/:id (+ POST classes/:id/students), /students[/:id], grades/attendance/goals/feedback entry,
   /students/:id/remediation (+ /ai, approve|reject|publish); all need role teacher and enforce assigned-student access
   (services/access/teacherAccess.js: 404 for unassigned students).
-- Student: /student/profile|grades|attendance|dashboard|me/dashboard (web calls /api/student/me/dashboard; keep alias).
+- Student: /student/profile|grades|attendance|dashboard|support-plans|me/dashboard (web calls /api/student/me/dashboard; keep alias).
 - Parent: /parent/children[/:id/dashboard|support-plans]; linked students only (relationship check in services/access).
 - Web: login/register/forgot, role redirects (AuthContext, ProtectedRoute); teacher dashboard + My Classes use the API
   (hooks/useApiResource); student portal (dashboard, progress, support plan) uses the API; parent portal (2026-11-23):
   linked-child selector, Overview, Academic Progress and Support Plan pages (SCRUM-146..153); roster rows link to profiles (SCRUM-152).
-- Web teacher class overview (SCRUM-143) uses the real class list but DEMO assignments (classOverviewMockData.js).
+- Web teacher class overview (SCRUM-143) uses the real class list but DEMO data (banner shown; classOverviewMockData.js); the class
+  Roster tab is real, the Assignments & Grades and Attendance tabs are disabled placeholders. Dates in feedback use utils/formatDate.
 - Not built: teacher Reports and Settings, Add Student form (API exists), live Class Overview data, reset-password page,
   real email (utils/mailer.js only logs).
 
@@ -46,6 +47,7 @@ Last updated: 2026-11-23.
   app, auth, common, student, teacher, utils (organized 2026-11-15). CI step scripts/check-test-layout.sh fails any
   PR with a misplaced test; .githooks/pre-push (npm install) also blocks a branch behind main.
 - Browser tests: Playwright in apps/web/tests/e2e/{auth,teacher,student,access}; CI job "Browser E2E" (not required yet).
+- Test status on main 2026-11-23: API 437 tests (101 suites), web 405 (68 files), Playwright 49; all green. Vitest must run from PowerShell on Windows.
 - Browser E2E local/CI Vite start must set `VITE_API_URL=http://localhost:3000`; Playwright defaults to installed Chromium unless a browser channel is selected.
 - API DB-backed routes check a shared MongoDB connection after request validation and authorization; unavailable DB returns 503, and connection/login logs omit credentials and submitted login values.
 - Deploy workflow is a manual no-op; Vercel config for API and web merged (SCRUM-150); live URL not confirmed.
@@ -62,7 +64,8 @@ Last updated: 2026-11-23.
   2026-11-17: GET /student/support-plans and GET /parent/children/:id/support-plans list every published plan (class name,
   publishedAt, `active` = newest per class); the student page shows active plans and hides earlier ones behind a button.
 - Parent portal (merged 2026-11-23): Overview, Academic Progress and Support Plan pages with a linked-child selector; the API
-  checks parent role and relationship. Reports, notifications and messaging remain open.
+  checks parent role and relationship. Each parent page starts on the first linked child (the selection is not shared across
+  pages). Reports, notifications and messaging remain open.
 - AI: provider abstraction done (services/ai/aiClient.js; LLM_PROVIDER openai|ollama|mock, LLM_MODEL, LLM_BASE_URL,
   OPENAI_API_KEY, OLLAMA_MODEL, AI_TIMEOUT_MS). 2026-11-15: server.js calls services/ai/resolveProvider.js at startup:
   openai without key/model or unreachable -> ollama; unset/unknown -> ollama; mock untouched. AI down -> manual fallback.
@@ -82,3 +85,6 @@ Last updated: 2026-11-23.
 - 2026-10: monorepo; MongoDB; JWT auth; seed data is synthetic (Faker).
 - 2026-11-01: ruleset repaired to target main; required checks added; agents update this file in the same PR.
 - 2026-11-15: web unit tests moved into module folders; CI enforces test layout; student API auth tests consolidated.
+- 2026-11-16: local AI default is Ollama gemma3:1b (9 models benchmarked); User.email optional, teacher-added students are "invited".
+- 2026-11-17: Docker stack is lean (no bundled Ollama); students and parents list every published plan (class, date, active).
+- 2026-11-23: parent portal merged (SCRUM-146..153); feedback dates shown as readable dates.
