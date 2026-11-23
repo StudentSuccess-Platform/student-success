@@ -100,4 +100,17 @@ describe('RosterView', () => {
 
     expect(screen.getByText(/no students enrolled in this class yet/i)).toBeInTheDocument()
   })
+
+  it('links each student name to their Student Profile, carrying this class as the return target (SCRUM-152)', () => {
+    renderView({ data: sampleData })
+
+    expect(screen.getByRole('link', { name: 'Marcus Vance' })).toHaveAttribute(
+      'href',
+      `/teacher/students/s1?from=${sampleData.class.id}`
+    )
+    expect(screen.getByRole('link', { name: 'Aria Thorne' })).toHaveAttribute(
+      'href',
+      `/teacher/students/s2?from=${sampleData.class.id}`
+    )
+  })
 })

@@ -9,3 +9,7 @@ export function getChildren(token) {
 export function getChildDashboard(studentId, token) {
   return request(`/api/v1/parent/children/${studentId}/dashboard`, { token })
 }
+
+export function getChildSupportPlans(studentId, token) {
+  return request(`/api/v1/parent/children/${studentId}/support-plans`, { token })
+}
