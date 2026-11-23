@@ -21,6 +21,12 @@ register, login, forgot-password and reset-password. Source of truth: `apps/api/
 | GET `/teacher/dashboard` | `{ summary, performanceTrend, attendanceOverview, interventions, recentActivity }` (shape in `apps/web/src/pages/teacher/dashboardMockData.js`) |
 | GET `/teacher/classes` | `{ classes: [{ id, name, period, room, studentCount }] }` |
 | POST `/teacher/classes/:classId/students` | Body `{ firstName, lastName, gradeLevel (1-12), email? }`. Creates a student with no login (User status `invited`, email optional) and enrols them: `201 { created: true, student: { id, name, gradeLevel, studentNumber, hasEmail, accountStatus }, class, enrollmentId }`. 400 `fields`; 404 not your class; 409 `fields.email` when the email is taken. Same first name + last name (case-insensitive) + grade level as an existing student: 409 `code: POSSIBLE_DUPLICATE` with `matches: [{ id, name, gradeLevel, studentNumber, alreadyInClass }]`; resend with `existingStudentId` (one of the matches) to enrol that student (200, `created: false`; 409 `ALREADY_ENROLLED`) or `allowDuplicate: true` to create a different child with the same name |
+| GET `/teacher/reports` | The signed-in teacher's own progress reports, most recently changed first: `{ reports: [{ id, studentId, studentName, sectionId, className, periodStart, periodEnd (YYYY-MM-DD), summary, status (draft, pending_review, published), source, createdAt, updatedAt, publishedAt }], counts: { draft, pending_review, published } }`. Optional `?status=`; `counts` ignore the filter. Other teachers' reports are never listed |
+| GET `/teacher/students/:studentId/reports/suggestion?sectionId&periodStart&periodEnd` | `{ summary }`: a factual starting text built from that class's grades, attendance and active goals in the period (no AI, no invented causes). 400 `fields`; 404 for an unassigned student |
+| POST `/teacher/students/:studentId/reports` | Body `{ sectionId, periodStart, periodEnd, summary }` creates a `draft` owned by the teacher -> 201 `{ report }`. `sectionId` must be one of the student's classes with this teacher (400 `fields.sectionId`); the end date may not be before the start; `summary` is required, 5000 characters at most |
+| PUT `/teacher/students/:studentId/reports/:reportId` | Body `{ periodStart, periodEnd, summary }` -> `{ report }`. 404 for a report that is not yours; 409 once published |
+| POST `/teacher/students/:studentId/reports/:reportId/publish` | `draft` or `pending_review` -> `published` (records reviewer and time) -> `{ report }`; 409 if already published. Racing requests: exactly one wins |
+| DELETE `/teacher/students/:studentId/reports/:reportId` | Deletes an unpublished report -> `{ deleted: true, id }`; 409 once published |
 | GET `/teacher/classes/:classId` | `{ class, students: [{ id, name, averageGrade, attendanceRate }], classAverage }`; 404 for another teacher's class |
 | POST `/teacher/recommendations` | AI remediation draft (advisory; teacher review required). 503 `AI_UNAVAILABLE` / 502 `AI_INVALID_RESPONSE` with `fallback: "manual"` |
 | GET `/teacher/students` | Assigned students only: `{ students: [{ id, name, gradeLevel, classNames, averageGrade, attendanceRate, needsIntervention }] }` |
@@ -43,12 +49,14 @@ Design and contracts: `docs/design/teacher-portal-mvp.md`.
 | Method and path | Result |
 |---|---|
 | GET `/student/dashboard` | The signed-in student only (identity comes from the token, never the URL): `{ student, summary, grades, performanceTrend, goals, teacherFeedback, feedbackHistory, supportPlan }`. `feedbackHistory` is every shared feedback note, newest first (`{ id, teacher, date, message }`); `teacherFeedback` is the latest one. `supportPlan` is null until a teacher publishes one (reported with `status: "approved"`). `summary.termGoal` is null until goal targets exist. |
+| GET `/student/reports` | The signed-in student's published progress reports only, newest period first: `{ reports: [{ id, className, teacher, periodStart, periodEnd, summary, publishedAt }] }`. Drafts and pending reports are never returned; status, source and reviewer are not included |
 | GET `/student/support-plans` | The signed-in student's published plans only, newest first: `{ plans: [{ id, classId, className, title, rationale, source ("teacher" or "ai"), teacher, publishedAt, active, items: [{ id, title, description, status, dueDate }] }] }`. `active` is true for the newest plan of each class; the rest are earlier plans (clients show active ones first). Drafts, pending, approved, rejected and archived plans are never returned; reviewer, AI audit id and `version` are not included |
 
 ## Parent (`/parent`, role parent)
 | Method and path | Result |
 |---|---|
 | GET `/parent/children` | `{ children: [{ id, name, gradeLevel }] }`, linked students only |
+| GET `/parent/children/:studentId/reports` | Same list and shape as `/student/reports` for one linked child; 404 if the student is not actively linked |
 | GET `/parent/children/:studentId/support-plans` | Same list and shape as `/student/support-plans` for one linked child; 404 if the student is not actively linked |
 | GET `/parent/children/:studentId/dashboard` | Same shape as the student dashboard; 404 if the student is not actively linked |
 

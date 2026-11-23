@@ -7,6 +7,7 @@ import studentsRouter from "./teacher/students.js";
 import recordsRouter from "./teacher/records.js";
 import remediationRouter from "./teacher/remediation.js";
 import aiRemediationRouter from "./teacher/aiRemediation.js";
+import reportsRouter from "./teacher/reports.js";
 
 const router = express.Router();
 
@@ -24,5 +25,6 @@ router.use(studentsRouter);
 router.use(recordsRouter);
 router.use(remediationRouter);
 router.use(aiRemediationRouter);
+router.use(reportsRouter);
 
 export default router;

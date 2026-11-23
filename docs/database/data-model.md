@@ -33,7 +33,7 @@ User (roles: teacher | student | parent | admin)
 | TeacherNote | private teacher notes | student, teacher, section?, visibility = `teacher_only` |
 | Goal / GoalUpdate | student goals and progress | student; goal, author, progressPercent |
 | RemediationPlan / RemediationItem | plans and their activities | student, section, teacher, status, source, reviewedBy, aiAudit |
-| ProgressReport | academic report for a period | student, period, summary, status, reviewedBy |
+| ProgressReport | academic report for a period, written by one teacher for one class | student, section, teacher (owner), period, summary, status (`draft`, `pending_review`, `published`), reviewedBy |
 | Notification | in-app notification | recipient, type, readAt |
 | Message | communication between users | sender, recipient, student? |
 | AiAuditLog | audit trail for AI generation | purpose, provider, model, promptVersion, requestedBy, reviewedBy, reviewOutcome |

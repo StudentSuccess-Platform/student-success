@@ -37,7 +37,7 @@ export function validateSeedData(data) {
   (data.Attendance ?? []).forEach((a) => {
     if (!isEnrolled(a.section, a.student)) problems.push(`Attendance ${idKey(a._id)}: student not enrolled in the section`);
   });
-  ["TeacherFeedback", "TeacherNote", "RemediationPlan"].forEach((name) => {
+  ["TeacherFeedback", "TeacherNote", "RemediationPlan", "ProgressReport"].forEach((name) => {
     (data[name] ?? []).forEach((doc) => {
       const section = sections.get(idKey(doc.section));
       if (!section) return;

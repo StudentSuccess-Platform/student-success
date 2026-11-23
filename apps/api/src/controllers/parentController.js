@@ -2,6 +2,7 @@ import { StudentProfile } from "../models/index.js";
 import { linkedStudentIds, requireLinkedStudent } from "../services/access/profiles.js";
 import { getStudentDashboard } from "../services/students/studentViews.js";
 import { listPublishedPlans } from "../services/students/supportPlans.js";
+import { listPublishedReports } from "../services/students/progressReports.js";
 
 export async function children(req, res) {
   const ids = await linkedStudentIds(req.user.id);
@@ -22,6 +23,11 @@ export async function children(req, res) {
 export async function childDashboard(req, res) {
   const student = await requireLinkedStudent(req.user.id, req.params.studentId);
   res.status(200).json(await getStudentDashboard(student));
+}
+
+export async function childReports(req, res) {
+  const student = await requireLinkedStudent(req.user.id, req.params.studentId);
+  res.status(200).json(await listPublishedReports(student._id));
 }
 
 export async function childSupportPlans(req, res) {
