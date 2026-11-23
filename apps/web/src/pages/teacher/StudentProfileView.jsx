@@ -15,20 +15,37 @@ import alertTriangleIcon from '../../assets/icons/dashboard/alert-triangle.svg'
 import '../../styles/teacher-students.css'
 
 // The open tab lives in the URL (?tab=grades) so refresh, back and shared links keep the view.
+// Only `tab` is touched here: any other param (e.g. `from`, SCRUM-152) must survive a tab switch.
 function useActiveTab() {
   const [searchParams, setSearchParams] = useSearchParams()
   const requested = searchParams.get('tab')
   const active = PROFILE_TABS.some((tab) => tab.id === requested) ? requested : 'overview'
 
   function setActive(id) {
-    setSearchParams(id === 'overview' ? {} : { tab: id })
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous)
+      if (id === 'overview') next.delete('tab')
+      else next.set('tab', id)
+      return next
+    })
   }
 
   return [active, setActive]
 }
 
+// When reached from a class's Roster tab (?from=<classId>, SCRUM-152), "back" returns there
+// instead of the full Students list, so the teacher doesn't lose their class context.
+function useBackToRoster() {
+  const [searchParams] = useSearchParams()
+  const classId = searchParams.get('from')
+  return classId
+    ? { to: `/teacher/classes/${classId}/roster`, label: 'Back to roster' }
+    : { to: '/teacher/students', label: 'Back to students' }
+}
+
 function StudentProfileView({ data, isLoading, error, reload }) {
   const [activeTab, setActiveTab] = useActiveTab()
+  const back = useBackToRoster()
 
   if (isLoading) {
     return <p className="dashboard-status">Loading student…</p>
@@ -39,8 +56,8 @@ function StudentProfileView({ data, isLoading, error, reload }) {
       <div className="student-profile">
         <div className="dashboard-status">
           <p>Student not found</p>
-          <Link to="/teacher/students" className="teacher-link">
-            Back to students
+          <Link to={back.to} className="teacher-link">
+            {back.label}
           </Link>
         </div>
       </div>
@@ -72,8 +89,8 @@ function StudentProfileView({ data, isLoading, error, reload }) {
         title={student.name}
         subtitle={`Grade ${student.gradeLevel} · Student #${student.studentNumber}`}
         action={
-          <Link to="/teacher/students" className="teacher-link">
-            Back to students
+          <Link to={back.to} className="teacher-link">
+            {back.label}
           </Link>
         }
       />
