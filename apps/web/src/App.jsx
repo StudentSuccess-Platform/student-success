@@ -24,6 +24,7 @@ import StudentProgress from './pages/student/Progress'
 import StudentSupportPlan from './pages/student/SupportPlan'
 
 import ParentDashboard from './pages/parent/ParentDashboard'
+import ParentAcademicProgressPage from './pages/parent/ParentAcademicProgressPage'
 
 function AuthFlow() {
   const [authView, setAuthView] = useState('login')
@@ -191,7 +192,7 @@ function AppContent() {
       >
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<ParentDashboard />} />
-        <Route path="academic-progress" element={<ComingSoon title="Academic Progress" />} />
+        <Route path="academic-progress" element={<ParentAcademicProgressPage />} />
         <Route path="support-plan" element={<ComingSoon title="Support Plan" />} />
       </Route>
     </Routes>
