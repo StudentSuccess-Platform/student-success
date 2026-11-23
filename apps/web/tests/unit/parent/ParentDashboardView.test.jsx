@@ -61,7 +61,7 @@ describe('ParentDashboardView', () => {
     expect(screen.getByText('94%')).toBeInTheDocument()
     expect(screen.getByText('1')).toBeInTheDocument() // active goals count
     expect(screen.getByText('Great persistence.')).toBeInTheDocument()
-    expect(screen.getByText('Dr. Maya Chen · 2026-09-18')).toBeInTheDocument()
+    expect(screen.getByText('Dr. Maya Chen · Sep 18, 2026')).toBeInTheDocument()
   })
 
   it('is a concise summary: never duplicates the detailed subject grades, trend, or full goal list that Academic Progress shows', () => {

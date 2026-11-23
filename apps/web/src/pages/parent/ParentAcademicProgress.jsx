@@ -6,6 +6,7 @@ import GradeList from '../../components/student/GradeList'
 import barChartIcon from '../../assets/icons/dashboard/bar-chart.svg'
 import calendarCheckIcon from '../../assets/icons/dashboard/calendar-check.svg'
 import bookOpenIcon from '../../assets/icons/dashboard/book-open.svg'
+import { formatDate } from '../../utils/formatDate'
 
 /**
  * Grades, attendance, performance trend, academic goals, and teacher feedback for one linked
@@ -76,7 +77,7 @@ function ParentAcademicProgress({ data }) {
               <div key={item.id}>
                 <p>{item.message}</p>
                 <small>
-                  {item.teacher} · {item.date}
+                  {item.teacher} · {formatDate(item.date)}
                 </small>
               </div>
             ))
