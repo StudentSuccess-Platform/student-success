@@ -54,6 +54,7 @@ describe('ParentAcademicProgressPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Academic Progress' })).toBeInTheDocument()
     expect(screen.queryByText(/under construction/i)).not.toBeInTheDocument()
+    await waitFor(() => expect(getChildDashboard).toHaveBeenCalledTimes(1))
     expect(getChildDashboard).toHaveBeenCalledWith('s1', null)
   })
 

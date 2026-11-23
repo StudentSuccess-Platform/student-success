@@ -28,7 +28,7 @@ function SupportPlanCard({ plan, earlier = false }) {
         <h3 className="student-support-plan__goal">{plan.title}</h3>
       </DashboardCard>
 
-      <div className="student-support-plan__sections">
+      <div>
         <DashboardCard title="Activities">
           {activities.length ? (
             <>
