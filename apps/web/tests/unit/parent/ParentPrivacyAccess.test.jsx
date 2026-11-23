@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import ParentDashboard from '../../../src/pages/parent/ParentDashboard'
 import { getChildren, getChildDashboard } from '../../../src/services/parentApi'
@@ -60,7 +61,11 @@ describe('Parent Portal — never requests a student ID outside GET /parent/chil
     getChildren.mockReturnValue(childrenDeferred.promise)
     getChildDashboard.mockResolvedValue(dashboardFor('s1', 'Liam'))
 
-    render(<ParentDashboard />)
+    render(
+      <MemoryRouter>
+        <ParentDashboard />
+      </MemoryRouter>,
+    )
 
     // Still loading: nothing has been requested with any id yet.
     expect(getChildDashboard).not.toHaveBeenCalled()
@@ -80,7 +85,11 @@ describe('Parent Portal — never requests a student ID outside GET /parent/chil
     getChildren.mockResolvedValue({ children: realChildren })
     getChildDashboard.mockImplementation((id) => Promise.resolve(dashboardFor(id, 'X')))
 
-    render(<ParentDashboard />)
+    render(
+      <MemoryRouter>
+        <ParentDashboard />
+      </MemoryRouter>,
+    )
     await screen.findByLabelText(/viewing/i)
 
     await user.selectOptions(screen.getByLabelText(/viewing/i), 'Maya Patel')
@@ -106,7 +115,11 @@ describe('Parent Portal — never requests a student ID outside GET /parent/chil
     // Never resolves — we only care what ids were requested, not the UI settling.
     getChildDashboard.mockReturnValue(new Promise(() => {}))
 
-    render(<ParentDashboard />)
+    render(
+      <MemoryRouter>
+        <ParentDashboard />
+      </MemoryRouter>,
+    )
     await screen.findByLabelText(/viewing/i)
 
     await user.selectOptions(screen.getByLabelText(/viewing/i), 'Maya Patel')
@@ -124,7 +137,11 @@ describe('Parent Portal — never requests a student ID outside GET /parent/chil
   it('error state: when the linked-children request fails, no dashboard request is ever attempted', async () => {
     getChildren.mockRejectedValue(new Error('Network error'))
 
-    render(<ParentDashboard />)
+    render(
+      <MemoryRouter>
+        <ParentDashboard />
+      </MemoryRouter>,
+    )
 
     await waitFor(() =>
       expect(screen.getByText(/couldn't load your linked students/i)).toBeInTheDocument()
@@ -135,7 +152,11 @@ describe('Parent Portal — never requests a student ID outside GET /parent/chil
   it('unauthorized-access state: a parent with zero linked children never triggers a dashboard request for any id', async () => {
     getChildren.mockResolvedValue({ children: [] })
 
-    render(<ParentDashboard />)
+    render(
+      <MemoryRouter>
+        <ParentDashboard />
+      </MemoryRouter>,
+    )
 
     await waitFor(() =>
       expect(screen.getByText(/no students are linked to your account/i)).toBeInTheDocument()
